@@ -5,13 +5,13 @@
  Purpose:           New PF created for ease of documentation and for pulling reports 
  					and gathering data of said rapid responses more efficiently
  Executed from:     DA2 / Reporting Portal
- Special Notes:     Requested by Ashley Shelter (CareNet Reporting WG) and Eva W. (GSH)
+ Special Notes:     Requested by Ashley Shelter (CareNet Reporting WG)
 ****************************************************************************************************
                                   MODIFICATION CONTROL LOG
 ****************************************************************************************************
 Mod    Date             Analyst                 MCGA            Comment
 ---    ----------       --------------------    ------          ------------------------------------
-000    12/21/2023       David Smith             345238          Initial Release
+000    12/21/2023       David Smith             345238         Initial Release
 *****************************************************************************************************/
 drop program 7_rapid_response_stroke_rpt go
 create program 7_rapid_response_stroke_rpt
