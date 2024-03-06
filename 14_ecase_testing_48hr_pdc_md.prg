@@ -278,20 +278,20 @@ endif
 
     plan c3 where c3.event_cd in (
 
-                    ;2258265897  ;CoVID19-SARS-CoV-2 by PCR
-                    ;,2254653289 ;COVID 19 (DH/CDC)
-                    ;,2259614555 ;COVID-19/Coronavirus RNA PCR
-                    ;,2258239523 ;COVID-19 (SARS-CoV-2, NAA)
-                    ;,2265151661 ;CoVID_19 (SARS-CoV2, NAA)
-                    ;,2258239523 ;COVID-19 (SARS-CoV-2, NAA)
-                    ;,2270692929 ;CoVID 19-SARS-CoV-2 Overall Result
-                    ;,2258265897 ;CoVID 19-SARS-CoV-2 by PCR
-                    ;,2270688963 ;CoVID 19-PAN-SARS-CoV-2 by PCR
-                    ;,2259601949 ;COVID19(SARS-CoV-2)
-                    ;,2276648185 ; NEW POC ORDER
-                    ;,2385455807 ;PCR Ag
-                    ;,2404008691 ;POC Ag
-                    ;,2435117743 ;COVID-19(SARS-CoV-2) Ag
+                    2258265897  ;CoVID19-SARS-CoV-2 by PCR
+                    ,2254653289 ;COVID 19 (DH/CDC)
+                    ,2259614555 ;COVID-19/Coronavirus RNA PCR
+                    ,2258239523 ;COVID-19 (SARS-CoV-2, NAA)
+                    ,2265151661 ;CoVID_19 (SARS-CoV2, NAA)
+                    ,2258239523 ;COVID-19 (SARS-CoV-2, NAA)
+                    ,2270692929 ;CoVID 19-SARS-CoV-2 Overall Result
+                    ,2258265897 ;CoVID 19-SARS-CoV-2 by PCR
+                    ,2270688963 ;CoVID 19-PAN-SARS-CoV-2 by PCR
+                    ,2259601949 ;COVID19(SARS-CoV-2)
+                    ,2276648185 ; NEW POC ORDER
+                    ,2385455807 ;PCR Ag
+                    ,2404008691 ;POC Ag
+                    ,2435117743 ;COVID-19(SARS-CoV-2) Ag
                     ,poc_rap_covid_pcr_cd ;POC Rapid COVID-19 PCR ;003
         )
 
@@ -741,6 +741,7 @@ and c.event_cd in (
                     ,2385455807 ; PCR Ag
                     ,2404008691 ;POC Ag
                     ,2435117743 ;COVID-19(SARS-CoV-2) Ag
+                    ,poc_rap_covid_pcr_cd ;POC Rapid COVID-19 PCR ;003
 
 
     )

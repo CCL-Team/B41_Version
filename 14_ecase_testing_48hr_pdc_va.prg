@@ -738,6 +738,7 @@ and c.event_cd in (
                     ,2385455807 ; PCR Ag
                     ,2404008691 ;POC Ag
                     ,2435117743 ;COVID-19(SARS-CoV-2) Ag
+                    ,poc_rap_covid_pcr_cd ;POC Rapid COVID-19 PCR ;003
 
 
     )
