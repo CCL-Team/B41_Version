@@ -1,0 +1,74 @@
+.madc_error{
+    font-family: tahoma; 
+    font-weight: bold;
+    color      : red;
+}
+
+.madc_wing{
+    font-family: webdings; /* Lawl */
+    font-weight: bold;
+    font-size  : 11pt; 
+}
+
+.madc_link_cursor{
+    cursor: pointer;
+}
+
+.madc_form{
+    font-family: tahoma; 
+    font-weight: bold;
+    color      : #014c6a;
+}
+
+.madc_form_standard{
+    font-family: tahoma;
+}
+
+.madc_date{
+    font-family: tahoma; 
+    font-weight: bold;
+}
+
+.madc_table {
+    table-layout: auto;
+    font-weight : normal;
+}
+
+.madc_doc_div {
+    /*border: 1px solid red;*/
+}
+
+
+/* troubleshooting table column widths
+.madc_table td {
+    border: 1px solid black;
+} */
+
+.madc_thead {
+    font-family : tahoma; 
+    white-space : nowrap;
+    font-weight : bold;
+    padding-left: 2em;
+}
+
+.madc_ttxt {
+    font-family: tahoma; 
+    zcolor     : black;
+    font-weight: bold;
+    width      : 100%;  /* With table->table-layout: auto and thead:nowrap this forces this column to grow and the headers to shrink */
+}
+
+.madc_cont_head{
+    font-family   : Arial; 
+    font-weight   : bold;
+    font-size     : 8pt;
+    color         : #6e6d6d;
+}
+
+.madc_pf, .madc_advault, .madc_scan{
+    padding-bottom: 1em;
+}
+
+.madc_pf_cont, .madc_advault_cont, .madc_scan_cont{
+    padding-left: 1em;
+}

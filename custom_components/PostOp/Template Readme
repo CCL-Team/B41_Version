@@ -1,0 +1,39 @@
+This project folder is basically able to be copy pasted into the mpage folder, and some minor work necessary to
+get it able to be specific to the project:
+    1) The .prg file needs to be renamed, and have the todo checklist in that file run through.
+    2) The .JS and .CSS need to be renamed and their new locations placed in the .prg image onload
+    3) In the custom component .js (I:\WININTEL\static_content\custom_mpage_content\custom-components\js\custom-components.js), 
+       you'll need to add the information to allow it to call your program.  To do that:
+        a) Make sure to make a backup before changing the file.  Normal procedure.
+        b) Add this code to the custom component JS:
+              
+              var [driverScriptVar] = {
+                  cclProgram: "[DRIVER SCRIPT NAME]",
+                  cclParams: ["mine"]
+              };
+           
+           Note you can send more params, I just didn't need to yet.  Obviously you need to change the driver script name to your
+           projects.  The [driverScriptVar] name should be unique and related to your project.
+    4) To set up Bedrock:  
+        a) Find the custom component you are going to use.  This should be on the mPage setup bedrock wizard.  Try not to steal any.
+        b) You can check the basic positioning and such by picking define mPage layout.  You can tell the undefined custom 
+           components this way too.  Make sure it is checked if you are going to test so it displays in the layout.
+        c) Then in the back in the normal wizard, pick that custom component and look at it's filters.
+        d) Name it how you want.
+        e) Namespace is cerner.custom_component
+        f) Component Options is the js object name used for [driverScriptVar] above (verbatim).
+
+Notes:
+    Changes to our CSS or JS happen off the webserver it seems so cycling that is not necessary.
+    The change to add the component to custom-components may require a webserver refresh.  To do that:
+        1) Run this query to get the url to use:
+               select concat(trim(info_char,3), '/manager')
+                 from dm_info 
+                where info_domain = 'INS'
+                  and info_name = 'CONTENT_SERVICE_URL'
+               go
+        2) Open that url in the citrix session (you can use the cups folder and link in the main support folder)
+        3) Refresh the custom-components section and refresh until they are both refreshed 
+           (Issues here might require a cache clear, although I haven't had to do that yet)
+    Bedrock changes require a cycling of the mPage servers (not the webserver).  
+    Changes to any backend scripts may also require cycling mPage servers.

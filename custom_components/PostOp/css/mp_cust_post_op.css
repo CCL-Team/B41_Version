@@ -1,0 +1,10 @@
+
+.mcpo_table tbody tr:nth-child(even){
+    background-color: #E1E1E1
+}
+
+/*
+.mcpo_table tbody td{
+    border: 1px red solid;
+}
+*/
