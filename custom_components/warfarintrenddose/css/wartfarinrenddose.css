@@ -1,0 +1,20 @@
+.wtd_cell{
+    border: 1px solid black;
+}
+
+.wtd_table{
+    table-layout: fixed;
+    width: auto;
+}
+
+.wtd_data_cell{
+    width: 105px;
+}
+
+.wtd_head_cell{
+    width: 120px;
+}
+
+.wtd_bold{
+    font-weight: bold;
+}

@@ -1,0 +1,26 @@
+/* This file is pulled in in the .prg html
+   If you are following a workflow like I did before I build this template, you'll need a 
+   component wrapper div to give jQuery the ability to use it to select your component.
+   That wrapper will have to be unique on page, and all CSS should use it as a parent tag 
+   to avoid modifying other components with this CSS.
+
+   You should pull out the example I had for table striping (or reuse)
+*/
+
+/*.mmvrp_table tr:nth-child(even){
+    background-color: #F4F4F4;
+}*/
+
+.mmatph_text_input{
+    width: 100%;
+}
+
+.mmatph_title{
+    font-weight: bold;
+}
+
+.mmatph_subtitle{
+    color: dimgray;
+    font-size: 90%;
+    margin-left: 5px;
+}
