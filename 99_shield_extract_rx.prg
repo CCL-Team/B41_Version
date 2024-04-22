@@ -39,6 +39,7 @@ Mod Date       Analyst              MCGA   Comment
                                            defaulting with orders ordered as synonym, then repopulating
                                            in the order_catalog_syn query.  Also... dup orders... not sure how...
                                            but it can only be one place... so trying a better approach there.
+006 12/14/2023 Michael Mayes               [TASK PENDING] Moving the weekly extract to Sats, looking back to Sat - Friday.
 *****************************END OF ALL MODCONTROL BLOCKS* ***********************************************/
 drop   program 99_shield_extract_rx:dba go
 create program 99_shield_extract_rx:dba
@@ -379,7 +380,7 @@ if($beg_date = '0' and $end_date = '0')
         /*
         So if today is Friday the 13th, we want this to be the 7th-13th
         */
-        set default_beg_dt = datetimefind(cnvtdatetime(curdate, curtime3), 'D', 'E', 'E')  ;End of the current Friday.
+        set default_beg_dt = datetimefind(cnvtlookbehind('1,D'), 'D', 'E', 'E')  ;End of the current Friday.
         set default_end_dt = default_beg_dt                                                ;Storing that into the end.
 
         set default_beg_dt = datetimefind(datetimeadd(default_beg_dt, - 6), 'D', 'B', 'B') ;End of the Sat before this week.
@@ -419,6 +420,7 @@ endif
 
 call echo(concat('BEG_DT_TM:', format(beg_dt_tm, '@SHORTDATETIME')))
 call echo(concat('END_DT_TM:', format(end_dt_tm, '@SHORTDATETIME')))
+
 
 
 ;Historical is for tests, and backfills, however it is pulled as well from the automated interface

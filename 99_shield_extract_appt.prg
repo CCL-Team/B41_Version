@@ -33,6 +33,7 @@ Mod Date       Analyst              MCGA   Comment
 001 12/26/2019 Michael Mayes        220867 Initial
 002 04/15/2021 Michael Mayes        227001 MRN to CMRN        
 003 04/28/2021 Michael Mayes        227003 Adding Telehealth ind
+004 04/05/2024 Michael Mayes        347001 Changing to 15 days.
 *************END OF ALL MODCONTROL BLOCKS* *******************************/
 drop   program 99_shield_extract_appt:dba go
 create program 99_shield_extract_appt:dba
@@ -142,14 +143,14 @@ declare run_end_dt_tm    = dq8 with protect, noconstant(cnvtdatetime(curdate, cu
 ;If we are running in an extract, we'll pass in 0 dates, and we should find our own extract time frame based on when the extract is
 ;run
 if($beg_date = '0' and $end_date = '0')
-    ;7 day forward window
+    ;15 day forward window
 
     /*
-    So if today is Monday the 17th, we want this to be 17-24th.
+    So if today is Monday the 8th, we want this to be 8-23rd.
     */
 
     set default_beg_dt = datetimefind(cnvtdatetime(curdate, curtime3), 'D', 'B', 'B') ;Beginning of Today.
-    set default_end_dt = datetimefind(datetimeadd(default_beg_dt, 6), 'D', 'E', 'E') ;Beginning of Yesterday
+    set default_end_dt = datetimefind(datetimeadd(default_beg_dt, 15), 'D', 'E', 'E') ;End of 15 days in the future.   ;004
 
     declare beg_dt_tm  = dq8 with protect, constant(default_beg_dt)
     declare end_dt_tm  = dq8 with protect, constant(default_end_dt)
@@ -201,10 +202,16 @@ select into 'nl:'
    and sa.person_id         != 0
    and sa.sch_role_cd       =  patient_cd
    and sa.person_id         =  p.person_id
+   and sa.schedule_seq      =  ( select max(sa3.schedule_seq)
+                                   from sch_appt sa3
+                                  where sa3.sch_event_id = sa.sch_event_id
+                               )
    and p.active_ind         =  1
    and sa2.sch_event_id     =  outerjoin(sa.sch_event_id)
    and sa2.sch_role_cd      != outerjoin(patient_cd)
    and sa2.person_id        != outerjoin(0)
+   and sa2.schedule_seq     =  outerjoin(sa.schedule_seq)
+   
 order by sa.sch_event_id,  sa.schedule_seq desc
 detail
     pos2 = locateval(idx, 1, size(extract_data->qual, 5), sa.sch_event_id, extract_data->qual[idx]->sch_event_id)
