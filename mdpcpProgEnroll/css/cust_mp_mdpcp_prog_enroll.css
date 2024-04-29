@@ -1,0 +1,39 @@
+.cmmpe_parent{
+    display: flex;
+    justify-content: space-between;
+}
+
+.cmmpeContentDiv{
+    width: 33%;
+    /*
+    background-color: red;
+    border: 1px solid black;
+    */
+}
+
+.cmmpeEmpanelDiv{
+    padding-bottom: 1rem;
+    
+    /*
+    background-color: red;
+    border: 1px solid black;
+    */
+}
+
+.cmmpeDiabPara{
+    color: orangered;
+    font-weight: bolder;
+}
+
+.cmmpeError{
+    color: orangered;
+    font-weight: bolder;
+}
+
+.cmmpeDiabSubPara{
+    margin-top: .5rem;
+}
+
+.cmmpeSelect{
+    max-width: 100%;
+}
