@@ -89,8 +89,10 @@ declare cssrs_able_cd      = f8  with protect,   constant(uar_get_code_by('DISPL
 declare cssrs_score_cd     = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',    72, 'CSSRSSCREENRISKLEVEL'            ))
 
 
-declare beg_dt_tm          = dq8 with protect,   constant(cnvtdatetime('01-APR-2020 00:00:00'))
-declare end_dt_tm          = dq8 with protect,   constant(cnvtdatetime('30-SEP-2022 23:59:59'))
+;declare beg_dt_tm          = dq8 with protect,   constant(cnvtdatetime('01-APR-2020 00:00:00'))
+;declare end_dt_tm          = dq8 with protect,   constant(cnvtdatetime('30-SEP-2022 23:59:59'))
+declare beg_dt_tm          = dq8 with protect,   constant(cnvtdatetime('01-JUN-2021 00:00:00'))
+declare end_dt_tm          = dq8 with protect,   constant(cnvtdatetime('31-AUG-2021 23:59:59'))
 
 
 declare pos                = i4  with protect, noconstant(0)
