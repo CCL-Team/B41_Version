@@ -60,6 +60,8 @@ Added "Safety contract for aggressive behavior"
 
 -------------------------------------------------------------------------------------------------------
 999   03/11/2024        Chris Grobbel       MCGA 345903         Add qualify on Affect/Behavior - Norms 
+007   06/07/2024        Michael Mayes       MCGA 348254         Adding many Problem codes that also appear on the rule 
+                                                                CN_HARM_PROB_ALERT
 *******************************************************************************************************/
  
 drop program 7_harm_to_others_census go
@@ -1389,10 +1391,21 @@ join p
           p.life_cycle_status_cd = 3301.00 and  ; Active
           p.nomenclature_id > 0.0
 join n
-    where n.nomenclature_id = p.nomenclature_id and
-          n.source_vocabulary_cd = value(uar_get_code_by("DISPLAY_KEY",400,"IMO")) and
-          n.source_identifier_keycap = "30956744" and  ; Potential for harm to others
-          n.active_ind = 1
+    ;007-> They are comparing this to an alert... and the alert looks at... more.  Trying a hot fix here.
+    ;where n.nomenclature_id = p.nomenclature_id and
+    ;      n.source_vocabulary_cd = value(uar_get_code_by("DISPLAY_KEY",400,"IMO")) and
+    ;      n.source_identifier_keycap = "30956744" and  ; Potential for harm to others
+    ;     n.active_ind = 1
+    where n.nomenclature_id = p.nomenclature_id 
+      and n.nomenclature_id in ( 17065318.00 ;Potential for harm to others
+                               , 50634797.00 ;Potential for harm to others
+                               ,  7699966.00 ;At risk of harming others
+                               , 32498689.00 ;At risk of harming others
+                               , 49282464.00 ;at moderate risk for harming others
+                               , 75052893.00 ;at increased risk for harming others
+                               , 32497891.00 ;at high risk of harming others.
+                               )
+    ;007<-
 Detail
     elh->qual[d.seq].problem_ind = 1
 with nocounter
