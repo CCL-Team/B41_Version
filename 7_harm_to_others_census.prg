@@ -775,8 +775,8 @@ If ($CURRENT_ONLY = 1)          ; 1 means that this repprt is being run only for
         ed.end_effective_dt_tm + 1 - 1 > cnvtdatetime(curdate, curtime3)
     and
         ed.encntr_domain_type_cd + 1 - 1 =  1139.00 ;  CENSUS_CD
-    and
-        ed.active_status_dt_tm + 1 -1  >= cnvtlookbehind ('180,d')
+    ;and
+    ;    ed.active_status_dt_tm + 1 -1  >= cnvtlookbehind ('364,d')   ;007 Getting us into trouble... wonder if I can remove.
     and
         ed.loc_building_cd + 1 - 1 > 0
     and
@@ -907,11 +907,10 @@ set END_EFFECTIVE_DT_TM =
 ;
 ; Immediately below, we are looking for all encounters for a specific facility.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;*/
- 
 select into "nl:"
 from encounter e
     ,person p
-Plan E where e.reg_dt_tm   between cnvtlookbehind("1,M", cnvtdatetime($START_DT) ) and cnvtdatetime($END_DT) and
+Plan E where e.reg_dt_tm   between cnvtlookbehind("1,Y", cnvtdatetime($START_DT) ) and cnvtdatetime($END_DT) and
     ((e.disch_dt_tm between cnvtdatetime($START_DT) and cnvtlookahead("1,M", cnvtdatetime($END_DT) )) or
       e.disch_dt_tm = NULL) and
 ;      e.loc_facility_cd + 4 - 4 = facility_cd and
@@ -1679,6 +1678,8 @@ endif       ; paired with the #REP_TYPE = "E")
  
  
 #EXIT_PROGRAM
+
+call echorecord(elh)
  
 end
 go
