@@ -170,6 +170,9 @@ declare creat3_cd       = f8  with protect, constant(uar_get_code_by('DISPLAYKEY
 
 declare creat_clear1_cd = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'ESTIMATEDCREATININECLEARANCE'   ))
 declare creat_clear2_cd = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'ESTCRCL'                        ))
+declare creat_clear3_cd = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'CREATCLEARANCE'                 ))  ;002
+declare creat_clear4_cd = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'CREATININECLEARANCE'            ))  ;002
+declare creat_clear5_cd = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'CREATININECLEARANCETRANSCRIBED' ))  ;002
 
 declare bili1_cd        = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'BILITOTAL'                      ))
 declare bili2_cd        = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'TOTALBILIRUBIN'                 ))
@@ -202,6 +205,9 @@ call echo(build('creat2_cd      :', creat2_cd      ))
 call echo(build('creat3_cd      :', creat3_cd      ))  ;002
 call echo(build('creat_clear1_cd:', creat_clear1_cd))
 call echo(build('creat_clear2_cd:', creat_clear2_cd))
+call echo(build('creat_clear3_cd:', creat_clear3_cd))  ;002
+call echo(build('creat_clear4_cd:', creat_clear4_cd))  ;002
+call echo(build('creat_clear5_cd:', creat_clear5_cd))  ;002
 call echo(build('bili1_cd       :', bili1_cd       ))
 call echo(build('bili2_cd       :', bili2_cd       ))
 call echo(build('bili3_cd       :', bili3_cd       ))  ;002
@@ -228,12 +234,13 @@ select into 'nl:'
                                , plate1_cd      , plate2_cd      
                                , creat1_cd      , creat2_cd      , creat3_cd  ;002
                                , creat_clear1_cd, creat_clear2_cd
+                               , creat_clear3_cd, creat_clear4_cd, creat_clear5_cd
                                , bili1_cd       , bili2_cd       , bili3_cd  ;002
                                , alt1_cd        , alt2_cd            
                                , ast1_cd        , ast2_cd        
                                , dose_weight_cd
                                )
-order by ce.event_cd, ce.event_end_dt_tm desc
+order by ce.event_end_dt_tm desc
 detail
     case(ce.event_cd)
     
@@ -307,6 +314,9 @@ detail
     
     of creat_clear1_cd:
     of creat_clear2_cd:
+    of creat_clear3_cd:  ;002
+    of creat_clear4_cd:  ;002
+    of creat_clear5_cd:  ;002
         if(results->creat_clear_cnt < 4)
             results->creat_clear_cnt = results->creat_clear_cnt + 1
         
@@ -485,7 +495,7 @@ endfor
 
 set tmp_str = notrim(build2( tmp_str, '\pard', reol, reol))
 
-set tmp_str =  notrim(build2( tmp_str,doac_head_row(cells, ' Est. CrCl', ' Bilirubin', ' ALT', ' AST')))
+set tmp_str =  notrim(build2( tmp_str,doac_head_row(cells, ' Creatinine Clearance', ' Bilirubin', ' ALT', ' AST')))
 for(looper = 1 to 4)
     set tmp_str = notrim(build2( tmp_str
                                , doac_row(cells, results->creat_clear[looper]->result_rtf
