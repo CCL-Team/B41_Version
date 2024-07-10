@@ -12,36 +12,37 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^IMPORTANT^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 **************************************************************************************************************
  Clone from jwd_PALLIATIVE_CARE_METRICS.prg
- 
+
  This report is only for ***MARYLAND DEPT OF HEALTH*** and looks for DTAs:
- 
+
  wrapper - 14_ecase_testing_wrapper
- 
+
 ******************************************************************************************************************************
 ******************************************************************************************************************************
 ******************************************************************************************************************************
 ******************************************************************************************************************************
-                                  MODIFICATION CONTROL LOG                                            
+                                  MODIFICATION CONTROL LOG
 ******************************************************************************************************************************
-Mod Date       Analyst            MCGA   Comment                                                      
+Mod Date       Analyst            MCGA   Comment
 --- ---------- ------------------ ------ -------------------------------------------------------------------------------------
 N/A 07/11/2022 Jeremy Daniel      N/A    Initial Release
 001 08/31/2023 Michael Mayes      N/A    (TASK PENDING)Changes to allow patient state to also allow pats in; Empty file name
 002 10/12/2023 Michael Mayes      240631 (TASK PENDING)Changes to allow build Teams integration
 003 01/25/2024 Michael Mayes      344896 (SCTASK0066907) Adding result.
+004 07/09/2024 Michael Mayes      239760 (SCTASK0093996) Adding columns for their working sessions to the file.
 *************END OF ALL MODCONTROL BLOCKS* ***********************************************************************************/
 drop program 14_ecase_testing_48hr_pdc go
 create program 14_ecase_testing_48hr_pdc
- 
+
 prompt
     "Output to File/Printer/MINE" = "MINE"   ;* Enter or select the printer or file name to send this report to.
     , "Result Start Date" = "SYSDATE"
     , "Result End Date" = "SYSDATE"
     , "Report Type" = 1
- 
+
 with OUTDEV, Start_Dt, End_Dt, Type
- 
- 
+
+
 declare componentCd = f8 with constant(uar_get_code_by("DISPLAY_KEY", 18189,"PRIMARYEVENTID")),protect
 declare blobout = vc with protect, noconstant(" ")
 declare blobnortf = vc with protect, noconstant(" ")
@@ -54,30 +55,30 @@ declare ocfcomp_cd = f8 with Constant(uar_get_code_by("MEANING",120,"OCFCOMP")),
 declare performloc = vc
 declare ptcnt = i4
 declare subroutine_get_blob(f8) = vc
- 
+
 declare fileName      = vc
 declare emptyfileName = vc   ;001
- 
+
 DECLARE dataDate = vc
- 
+
 SET dataDate = TRIM(FORMAT(CNVTDATETIME(curdate,curtime3),"mmddyyyyhhmm;;d"),3)
- 
+
 SET FILE_NAME       =  concat( "/cerner/d_p41/cust_output_2/doh_covid_results/md_elr_"
                              , format(cnvtdatetime(curdate,curtime3),"YYYYMMDDhhmmss;;Q")
                              , ".csv")
-                             
+
 ;001->
 SET EMPTY_FILE_NAME =  concat( "/cerner/d_p41/cust_output_2/doh_covid_results/no_data_md_elr_"
                              , format(cnvtdatetime(curdate,curtime3),"YYYYMMDDhhmmss;;Q")
                              , ".csv")
-;001<-                                    
-    
- 
- 
+;001<-
+
+
+
 ;set start_dt_tm = cnvtdatetime((curdate-1), 000000)
 ;set end_dt_tm =   cnvtdatetime((curdate-1), 235959)
- 
- 
+
+
 ;***** Set Print Record Structure
 free record rs
 record rs
@@ -209,8 +210,8 @@ record rs
         2 last_result = vc
         2 UPDATE_COUNT = I4
 )
- 
- 
+
+
 ;****************************************************************************************************
 ;                               VARIABLE DECLARATIONS / EMAIL DEFINITIONS
 ;****************************************************************************************************
@@ -221,40 +222,40 @@ IF($TYPE = 3);EMAILING OF REPORT
     DECLARE EMAIL_BODY        = VC WITH NOCONSTANT('')
     DECLARE EMPTY_FILE_NAME   = vc with noconstant('')
     DECLARE UNICODE           = VC WITH NOCONSTANT('')
-    
+
     set     FILE_NAME         = ''
-    
+
     DECLARE AIX_COMMAND       = VC WITH NOCONSTANT('')
     DECLARE AIX_CMDLEN        = I4 WITH NOCONSTANT(0)
     DECLARE AIX_CMDSTATUS     = I4 WITH NOCONSTANT(0)
-    
+
     DECLARE PRODUCTION_DOMAIN = vc with constant('P41')
     DECLARE BUILD_DOMAIN      = vc with constant('B41')
-    
+
     Declare EMAIL_ADDRESS     = vc
     SET EMAIL_ADDRESS         = $OUTDEV
-    
+
     Declare newline =          vc with protect, constant(build2(char(13), char(10)))
- 
-    
+
+
     SET EMAIL_BODY = concat("ecase_ko_48hr-p-dcc_",
     format(cnvtdatetime(curdate, curtime3),"YYYYMMDDhhmmss;;Q"), ".dat")
- 
- 
+
+
     if(CURDOMAIN in (PRODUCTION_DOMAIN, BUILD_DOMAIN))
-        
-        if(CURDOMAIN = PRODUCTION_DOMAIN) 
+
+        if(CURDOMAIN = PRODUCTION_DOMAIN)
             SET EMAIL_SUBJECT = build2("Ecase Kick Out - 48 P-DC ALL Results Report")
             SET FILE_NAME = 'ecase_ko_48hr-p-dcc_'
-        
-        elseif(CURDOMAIN = BUILD_DOMAIN)  
+
+        elseif(CURDOMAIN = BUILD_DOMAIN)
             SET EMAIL_SUBJECT = build2("!!!BUILD!!! Ecase Kick Out - 48 P-DC ALL Results Report")
             SET FILE_NAME = 'ecase_ko_48hr-b41-p-dcc_'
         endif
-    
+
         Select into (value(EMAIL_BODY))
             build2( "The Ecase Kick Out - 48 P-DC ALL Results report is attached to this email."        , newline, newline
-                   
+
                   , "Date Range: ", $START_DT , " to ", $END_DT                                         , newline, newline
 
                   , "Run date and time: ",format(cnvtdatetime(curdate, curtime3), "MM/DD/YYYY hh:mm;;Q"), newline, newline
@@ -262,35 +263,35 @@ IF($TYPE = 3);EMAILING OF REPORT
 
         from dummyt
         with format, noheading
-    
+
     endif
-    
-    
+
+
     ;001->  Empty file name definition as and some refactoring.
     set filename      = concat( trim(FILE_NAME, 3)
                               , trim(format(cnvtdatetime(curdate, curtime3), "YYYYMMDDhhmmss;;Q"), 3)
                               , trim(substring(3,3,cnvtstring(RAND(0)))) ;<<<< 3 random #s
                               , ".csv"
                               )
-    
+
     set emptyfileName = build2( 'no_data_' , filename)
-    
+
     ;001<-
     ;002<-
-        
+
 endif
- 
- 
+
+
 ;*****************************************************************************************************
 ;                               main select
 ;*****************************************************************************************************
     ;Build and prod have these results diff... so I'm going to hunt for it with the uar.
     declare poc_rap_covid_pcr_cd = f8 with protect,   constant(uar_get_code_by('DISPLAY_KEY', 72, 'POCRAPIDCOVID19PCR'))   ;003
-    
+
     select into "nl:"
- 
+
     from
- 
+
     Person p
     , encounter e
     , clinical_event c3
@@ -301,10 +302,10 @@ endif
     , phone ph
     , code_value_outbound cvo
     , code_value_outbound cvo2
- 
- 
+
+
     plan c3 where c3.event_cd in (
- 
+
                     2258265897  ;CoVID19-SARS-CoV-2 by PCR
                     ,2254653289 ;COVID 19 (DH/CDC)
                     ,2259614555 ;COVID-19/Coronavirus RNA PCR
@@ -320,14 +321,14 @@ endif
                     ,2404008691 ;POC Ag
                     ,2435117743 ;COVID-19(SARS-CoV-2) Ag
                     ,poc_rap_covid_pcr_cd ;POC Rapid COVID-19 PCR ;003
-                    
+
                     , 3689960967.00;MONKEYPOX
                     , 3691931613.00
                     , 3711256891.00
                     , 3691941627.00
                     , 3766088351.00
         )
- 
+
         AND C3.normalcy_cd = 201.00
         ;and c3.result_val != "Invalid"
         and c3.event_end_dt_tm > cnvtlookbehind("14,D")
@@ -339,21 +340,21 @@ endif
         and c3.authentic_flag = 1
         ;and c3.contributor_system_cd  not in  (1038645461.00,  926194249.00);  EMRLINK_ADD/demo
         ;cnvtdatetime((curdate-1), 000000)and cnvtdatetime((curdate-1), 235959)
- 
+
     JOIN O WHERE O.order_id = outerjoin(C3.order_id)
- 
+
     join cvo where cvo.code_value = outerjoin(c3.event_cd) and cvo.contributor_source_cd = outerjoin(56496061.00)   ;LOINC
- 
+
     join cvo2 where cvo2.code_value = outerjoin(o.catalog_cd) and cvo2.contributor_source_cd = outerjoin(56496061.00)   ;LOINC
- 
+
     join e where e.encntr_id = c3.encntr_id; and e.contributor_system_cd not in  (1038645461.00,  926194249.00);    EMRLINK_ADD/demo
     and e.disch_dt_tm != null
     ;and e.disch_dt_tm < cnvtlookbehind("2,D")
- 
+
     join org where org.organization_id = OUTERJOIN(e.organization_id)
- 
+
     join orga where orga.organization_id = outerjoin(e.organization_id) and orga.org_alias_type_cd = outerjoin(653405.00);  CLIA
- 
+
     join p where p.person_id = OUTERJOIN(c3.person_id)
                                     AND P.NAME_LAST_KEY != outerjoin("ZZ*")
                                     AND P.NAME_LAST_KEY != outerjoin("CAREMOBILE")
@@ -364,11 +365,11 @@ endif
                                     AND not OPERATOR(P.NAME_LAST_KEY,"REGEXPLIKE","[0-9]")
                                     and p.active_ind = outerjoin(1)
                                     and p.end_effective_dt_tm > outerjoin(cnvtdatetime(sysdate))
- 
+
     join pa where pa.person_id = OUTERJOIN(p.person_id) and pa.person_alias_type_cd = OUTERJOIN(2) ; CMRN
         and pa.active_ind = outerjoin(1)
         and pa.end_effective_dt_tm > outerjoin(cnvtdatetime(sysdate))
- 
+
     join ph where ph.parent_entity_id = outerjoin(p.person_id)
         and ph.active_ind = outerjoin(1)
         and ph.phone_type_cd = outerjoin(170)   ;Home
@@ -376,18 +377,18 @@ endif
         and ph.end_effective_dt_tm > outerjoin(cnvtdatetime(curdate,curtime))
         AND PH.parent_entity_name = outerjoin("PERSON")
         ;and ph.phone_format_cd = outerjoin(        874.00)
- 
+
     order by C3.event_id
- 
+
 head report
     patients = 0
- 
+
 head C3.event_id
- 
- 
+
+
 patients = patients + 1
 STAT=ALTERLIST(RS->QUAL,PATIENTS)
- 
+
     rs->QUAL[patients]->FirstName = p.name_first
     rs->QUAL[patients]->LastName = p.name_last
     ;rs->QUAL[patients]->AGE = CNVTAGE(P.birth_dt_tm)
@@ -420,31 +421,31 @@ STAT=ALTERLIST(RS->QUAL,PATIENTS)
     ;rs->QUAL[patients]->service_resource = uar_get_code_display(c3.resource_cd)
     rs->QUAL[patients]->OrderingCLIA = orga.alias
     rs->QUAL[patients]->contributor = c3.contributor_system_cd
-    
+
     rs->QUAL[patients]->date_diff = datetimediff(c3.valid_from_dt_tm,e.disch_dt_tm,1)
-    
+
     ;if(rs->QUAL[patients]->valid_from_dttm = sysdate - 1)
     rs->QUAL[patients]->event_id = c3.event_id
     rs->QUAL[patients]->clin_sig_dttm = cnvtdate(c3.clinsig_updt_dt_tm,"MM/DD/YYYY;;D")
     rs->QUAL[patients]->update_count = c3.updt_cnt
     ;endif
-    
+
     if (datetimediff(c3.valid_from_dt_tm,e.disch_dt_tm,1) > 1.99)
     rs->QUAL[patients].48hr_ind = 1
     endif
-    
+
     if(rs->qual[patients].ACCESSION = " ")
         rs->qual[patients].ACCESSION = cnvtstring(c3.order_id)
     endif
- 
+
     if(rs->QUAL[patients]->Race in ( "*ZZ*","*Hispanic/Spanish*","*Unknown*"))
     rs->QUAL[patients]->Race = " "
     endif
- 
+
     if(rs->QUAL[patients]->Race in ( "*Non Hispanic*","*Multiple*","*Declined to Answer*"))
     rs->QUAL[patients]->Race = " "
     endif
- 
+
         if (rs->QUAL[patients]->ORG_ID in (
                                       12920488 ;OCC Health locations
                                     ,12917535
@@ -465,16 +466,16 @@ STAT=ALTERLIST(RS->QUAL,PATIENTS)
                                     ))
         rs->QUAL[patients]->oc_stat = "Y"
         endif
- 
+
     if(rs->QUAL[patients]->Gender = "Female")
     rs->QUAL[patients]->Gender = "F"
     elseif (rs->QUAL[patients]->Gender = "Male")
     rs->QUAL[patients]->Gender = "M"
     else rs->QUAL[patients]->Gender = "U"
     endif
- 
+
     if(rs->QUAL[patients]->ACCESSION != null)
- 
+
     if (rs->QUAL[patients]->org_id = 628085)
     rs->QUAL[patients]->clia  = "09D0207566"
     elseif(rs->QUAL[patients]->org_id = 628088)
@@ -494,9 +495,9 @@ STAT=ALTERLIST(RS->QUAL,PATIENTS)
     elseif(rs->QUAL[patients]->org_id = 3440653)
     rs->QUAL[patients]->clia  = "21D0705218"
     endif
- 
+
     endif
- 
+
         if(rs->QUAL[patients]->ethnic_cd in (
         "Central American"
         ,"Cuban"
@@ -515,22 +516,22 @@ STAT=ALTERLIST(RS->QUAL,PATIENTS)
         else
         rs->QUAL[patients]->ethnic_cd = " "
         endif
- 
+
         if(rs->QUAL[patients]->Race = "*ZZZ*")
         rs->QUAL[patients]->Race = " "
         endif
- 
+
         if(rs->QUAL[patients]->event_cd =  2404008691.00)
         rs->QUAL[patients]->OrderDesc = "POC Rapid COVID-19 Screen_BD_Antigen"
         endif
- 
+
         if(rs->QUAL[patients]->event_cd =   2276648185.00)
         rs->QUAL[patients]->OrderDesc = "Abbott ID NOW Molecular"
         endif
- 
- 
+
+
 with nocounter, time = 1000;, ORAHINTCBO("INDEX( E XIE17ENCOUNTER)")
-  
+
 IF (SIZE (RS->QUAL,5)=0)
 go to EXITPROGRAM
 ENDIF
@@ -548,48 +549,48 @@ FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
     , long_text lt
     , organization_alias orga
     , address a
- 
- 
+
+
 PLAN d
 JOIN c where c.event_id = rs->qual[d.seq].event_id
- 
+
 and c.event_cd in (
- 
+
             2259601949  ;COVID19(SARS-CoV-2) ;Respiratory Virus Pnl PCR
     )
- 
+
 and c.event_end_dt_tm  > CNVTDATETIME(CNVTDATE( 04072020), 0700)
- 
+
 ;join o where o.order_id = outerjoin(c.order_id)
- 
+
 join cen where cen.event_id = outerjoin(c.event_id)
- 
+
 join ocm where ocm.order_id = outerjoin(c.order_id)
- 
+
 join lt where lt.long_text_id = outerjoin(ocm.long_text_id)
     and lt.active_ind = outerjoin(1)
     ;and cnvtupper(lt.parent_entity_name)= outerjoin ("RESULT_COMMENT" )
- 
+
 join lb
     where lb.parent_entity_id = outerjoin(cen.ce_event_note_id)
- 
+
 join e where e.encntr_id = outerjoin(c.encntr_id)
- 
+
 join org where org.organization_id = OUTERJOIN(e.organization_id)
- 
+
 join orga where orga.organization_id = outerjoin(org.organization_id) and orga.org_alias_type_cd = outerjoin(653405.00);    CLIA
- 
+
 join a where a.parent_entity_id = outerjoin(org.organization_id)
     and a.active_ind = outerjoin(1)
     and a.end_effective_dt_tm > outerjoin(cnvtdatetime(sysdate))
     and a.address_type_cd = outerjoin(754.00)
- 
- 
- 
+
+
+
 order by d.seq
- 
+
 head d.seq
- 
+
     rs->QUAL[d.seq]->PerformDtTm = format(c.performed_dt_tm, "MM/DD/YYYY;;D")
     rs->QUAL[d.seq]->SpecimenP = c.event_cd
     rs->QUAL[d.seq]->event = uar_get_code_display(c.event_cd)
@@ -598,24 +599,24 @@ head d.seq
     rs->QUAL[d.seq]->ResultUnit = uar_get_code_display(c.result_units_cd)
     rs->QUAL[d.seq]->RESULT_DTTM = format(C.valid_from_dt_tm, "MM/DD/YYYY;;D")
     rs->QUAL[d.seq]->service_resource = uar_get_code_display(c.resource_cd)
- 
- 
+
+
                     ;if(cen.compression_cd = 728.00);ocfcomp_cd)
                 if((rs->QUAL[d.seq]->Result) != " ")
- 
+
                 blobout = notrim(fillstring(32767," "))
                 blobnortf = notrim(fillstring(32767," "))
                 if(cen.compression_cd = 728.00);ocfcomp_cd)
                     uncompsize = 0
- 
+
                     blob_un = UAR_OCF_UNCOMPRESS(lb.long_blob, size(Lb.LONG_BLOB),;lenblob,
                                                  blobout, SIZE(blobout), uncompsize)
- 
+
                     stat = uar_rtf2(blobout,uncompsize,blobnortf,size(blobnortf),bsize,0)
- 
- 
+
+
                 else
- 
+
                         blobout = trim(substring(1,10000, lb.long_blob))
                         if(cen.note_format_cd = 125.00 )  ; RTF_CD
                             stat = uar_rtf2(blobout,10000,blobnortf,size(blobnortf),bsize,0)
@@ -625,13 +626,13 @@ head d.seq
                             bsize = lenblob
                         endif
                 endif
- 
+
                     rs->QUAL[d.seq].ResultCmt = replace(replace(
                             trim(substring(1,2000,blobnortf)),char(10),""),char(13),"") ;.blob1
- 
+
                     blobnortf = performloc
- 
- 
+
+
                 endif
                 fndStrng = findstring("Performing location:",rs->QUAL[d.seq]->ResultCmt,0);
                 if (fndStrng > 0)
@@ -646,10 +647,10 @@ head d.seq
                 rs->QUAL[d.seq]->perform_zip = a.zipcode
                 rs->QUAL[d.seq]->perform_county = uar_get_code_display(A.county_cd)
                 endif
- 
+
         if (rs->QUAL[d.seq]->Perform_location != "*Perform*")
         rs->QUAL[d.seq]->PerformingCLIA = orga.alias
- 
+
             if (rs->QUAL[d.seq]->org_id = 628085)
             rs->QUAL[d.seq]->PerformingCLIA  = "09D0207566"
             elseif(rs->QUAL[d.seq]->org_id = 628088)
@@ -670,7 +671,7 @@ head d.seq
             rs->QUAL[d.seq]->PerformingCLIA  = "21D0705218"
             endif
         endif
- 
+
         if(rs->qual[d.seq].service_resource = "*WHC*")
         rs->QUAL[d.seq]->PerformingCLIA  = "09D0208070"
         rs->QUAL[d.seq]->Perform_location = "Washington Hospital Center"
@@ -732,7 +733,7 @@ head d.seq
         endif
  ;end 002
 with nocounter, time = 300
- 
+
 /**************************************************************************************
                 ;results
 ***************************************************************************************/
@@ -749,13 +750,13 @@ FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
     , ce_blob  cb
     , organization_alias orga
     , address a
- 
- 
- 
- 
+
+
+
+
 PLAN d
 JOIN c where c.event_id = rs->qual[d.seq].event_id
- 
+
 and c.event_cd in (
                 ;   2258261423  ;CoVID19-SARS-CoV-2 Source
                 2258265897  ;CoVID19-SARS-CoV-2 by PCR
@@ -767,7 +768,7 @@ and c.event_cd in (
                 ,2270692929 ;CoVID 19-SARS-CoV-2 Overall Result
                 ,2258265897 ;CoVID 19-SARS-CoV-2 by PCR
                 ,2270688963 ;CoVID 19-PAN-SARS-CoV-2 by PCR
- 
+
                 ,2276648185 ; NEW POC ORDER
                 ;,2274006443 ; OCC HEALTH
                     ,2282064783
@@ -783,50 +784,50 @@ and c.event_cd in (
                     ,2404008691 ;POC Ag
                     ,2435117743 ;COVID-19(SARS-CoV-2) Ag
                     ,poc_rap_covid_pcr_cd ;POC Rapid COVID-19 PCR ;003
-                    
+
                     , 3689960967.00;MONKEYPOX
                     , 3691931613.00
                     , 3711256891.00
                     , 3691941627.00
                     , 3766088351.00
- 
- 
+
+
     )
     ;and c.result_val in ("Positive", "Negative", "Not Detected", "Detected", "POSITIVE","NEGATIVE", "DETECTED", "NOT DETECTED")
- 
+
 ;join o where o.order_id = outerjoin(c.order_id)
 
 ;join cep where cep.event_id = c.event_id and cep.action_type_cd = 103.00
 ;and cep.action_status_cd = 653.00
- 
+
 join cen where cen.event_id = outerjoin(c.event_id)
- 
+
 join ocm where ocm.order_id = outerjoin(c.order_id)
- 
+
 join lt where lt.long_text_id = outerjoin(ocm.long_text_id)
     and lt.active_ind = outerjoin(1)
     ;and cnvtupper(lt.parent_entity_name)= outerjoin ("RESULT_COMMENT" )
- 
+
 join lb
     where lb.parent_entity_id = outerjoin(cen.ce_event_note_id)
- 
+
 join e where e.encntr_id = outerjoin(c.encntr_id)
- 
+
 join org where org.organization_id = OUTERJOIN(e.organization_id)
- 
+
 join orga where orga.organization_id = outerjoin(org.organization_id) and orga.org_alias_type_cd = outerjoin(653405.00);    CLIA
- 
+
 join cb where cb.event_id = outerjoin(c.event_id)
- 
+
 join a where a.parent_entity_id = outerjoin(org.organization_id)
     and a.active_ind = outerjoin(1)
     and a.end_effective_dt_tm > outerjoin(cnvtdatetime(sysdate))
     and a.address_type_cd = outerjoin(754.00)
- 
+
 order by d.seq
- 
+
 head d.seq
- 
+
     rs->QUAL[d.seq]->PerformDtTm = format(c.performed_dt_tm, "MM/DD/YYYY;;D")
     rs->QUAL[d.seq]->SpecimenP = c.event_cd
     rs->QUAL[d.seq]->event = uar_get_code_display(c.event_cd)
@@ -836,24 +837,24 @@ head d.seq
     rs->QUAL[d.seq]->ResultUnit = uar_get_code_display(c.result_units_cd)
     rs->QUAL[d.seq]->Result_dttm = format(C.valid_from_dt_tm, "MM/DD/YYYY hh:mm:ss;;D")
     rs->QUAL[d.seq]->service_resource = uar_get_code_display(c.resource_cd)
- 
- 
+
+
                     ;if(cen.compression_cd = 728.00);ocfcomp_cd)
                 if((rs->QUAL[d.seq]->Result) != " ")
- 
+
                 blobout = notrim(fillstring(32767," "))
                 blobnortf = notrim(fillstring(32767," "))
                 if(cen.compression_cd = 728.00);ocfcomp_cd)
                     uncompsize = 0
- 
+
                     blob_un = UAR_OCF_UNCOMPRESS(lb.long_blob, size(Lb.LONG_BLOB),;lenblob,
                                                  blobout, SIZE(blobout), uncompsize)
- 
+
                     stat = uar_rtf2(blobout,uncompsize,blobnortf,size(blobnortf),bsize,0)
- 
- 
+
+
                 else
- 
+
                         blobout = trim(substring(1,10000, lb.long_blob))
                         if(cen.note_format_cd = 125.00 )  ; RTF_CD
                             stat = uar_rtf2(blobout,10000,blobnortf,size(blobnortf),bsize,0)
@@ -863,13 +864,13 @@ head d.seq
                             bsize = lenblob
                         endif
                 endif
- 
+
                     rs->QUAL[d.seq].Resultcmt = replace(replace(
                             trim(substring(1,2500,blobnortf)),char(10),""),char(13),"") ;.blob1
- 
+
                     blobnortf = performloc
- 
- 
+
+
                 endif
                 fndStrng = findstring("Performing location:",rs->QUAL[d.seq]->ResultCmt,0);
                 if (fndStrng > 0)
@@ -884,10 +885,10 @@ head d.seq
                 rs->QUAL[d.seq]->perform_zip = a.zipcode
                 rs->QUAL[d.seq]->perform_county = uar_get_code_display(A.county_cd)
                 endif
- 
+
         if (rs->QUAL[d.seq]->Perform_location != "*Perform*")
         rs->QUAL[d.seq]->PerformingCLIA = orga.alias
- 
+
             if (rs->QUAL[d.seq]->org_id = 628085)
             rs->QUAL[d.seq]->PerformingCLIA  = "09D0207566"
             elseif(rs->QUAL[d.seq]->org_id = 628088)
@@ -908,25 +909,25 @@ head d.seq
             rs->QUAL[d.seq]->PerformingCLIA  = "21D0705218"
             endif
         endif
- 
+
             if(c.event_cd = 2276648185)
             rs->qual[d.seq].ACCESSION = cnvtstring(c.order_id)
             rs->QUAL[d.seq]->Specimen = "NP Swab"
             rs->QUAL[d.seq]->service_resource = "POC Abbot ID NOW_Abbott_DIT"
             rs->QUAL[d.seq]->o_loinc = "94534-5"
             endif
- 
+
         if(c.event_cd = 2404008691)
         rs->qual[d.seq].ACCESSION = cnvtstring(c.order_id)
         rs->QUAL[d.seq]->Specimen = "Mid-Turbinate(upper nasal)"
         rs->QUAL[d.seq]->service_resource = "BD Veritor Plus"
         rs->QUAL[d.seq]->o_loinc = "94558-4"
- 
+
         if(rs->qual[d.seq].ACCESSION = "0")
         rs->qual[d.seq].ACCESSION = cnvtstring(c.event_id)
         endif
         endif
- 
+
         if(rs->qual[d.seq].service_resource = "*WHC*")
         rs->QUAL[d.seq]->PerformingCLIA  = "09D0208070"
         rs->QUAL[d.seq]->Perform_location = "Washington Hospital Center"
@@ -990,7 +991,7 @@ with nocounter, time = 500
 Select into "nl:"
 FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
     , CLINICAL_EVENT C
- 
+
 PLAN d
 JOIN c where c.event_id = rs->qual[d.seq].event_id
         AND C.normalcy_cd = 201.00
@@ -1002,15 +1003,15 @@ JOIN c where c.event_id = rs->qual[d.seq].event_id
         ;AND C3.clinsig_updt_dt_tm between CNVTDATETIME($START_DT)AND CNVTDATETIME($END_DT)
         and c.result_status_cd in (25,34,35)
         and c.authentic_flag = 1
-        
+
 order by c.valid_from_dt_tm desc
- 
+
 ;head d.seq
 DETAIL
- 
+
     rs->QUAL[d.seq]->early_result_dt = cnvtdate(c.valid_from_dt_tm)
     rs->QUAL[d.seq]->early_result = c.result_val
- 
+
 with nocounter, time = 500
 /**************************************************************************************
                 ;results
@@ -1018,7 +1019,7 @@ with nocounter, time = 500
 Select into "nl:"
 FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
     , CLINICAL_EVENT C
- 
+
 PLAN d
 JOIN c where c.event_id = rs->qual[d.seq].event_id
         AND C.normalcy_cd = 201.00
@@ -1030,52 +1031,52 @@ JOIN c where c.event_id = rs->qual[d.seq].event_id
         ;AND C3.clinsig_updt_dt_tm between CNVTDATETIME($START_DT)AND CNVTDATETIME($END_DT)
         and c.result_status_cd in (25,34,35)
         and c.authentic_flag = 1
- 
-order by c.valid_from_dt_tm 
- 
+
+order by c.valid_from_dt_tm
+
 head d.seq
 ;DETAIL
- 
+
     rs->QUAL[d.seq]->last_result_dt = cnvtdate(c.valid_from_dt_tm)
-    
+
     rs->QUAL[d.seq]->last_result = c.result_val
     rs->QUAL[d.seq]->RESULT_DTTM_DIFF = CNVTINT(datetimediff(rs->QUAL[d.seq]->last_result_dt,rs->QUAL[d.seq]->EARLY_result_dt,1))
-    
+
     if ((cnvtreal(datetimediff(rs->QUAL[d.seq]->last_result_dt,rs->QUAL[d.seq]->EARLY_result_dt,1)) < 1);AND rs->QUAL[d.seq]->UPDATE_COUNT < 3
     OR rs->QUAL[d.seq]->early_result != rs->QUAL[d.seq]->last_result
     or rs->QUAL[d.seq]->early_result_dt = rs->QUAL[d.seq]->last_result_dt)
-    
+
     rs->QUAL[D.SEQ].INCLUDE = 1
-    
+
     endif
- 
+
 with nocounter, time = 500
 ;------------------------------------------------------------------------------------------
 ;Additional Detail
 ;-------------------------------------------------------------------------------------------
- 
+
     for(cnt=1 to size(rs->qual,5))
         if(rs->qual[cnt].event_id > 0)
             set rs->qual[cnt].int_result = subroutine_get_blob(rs->qual[cnt].event_id)
         endif
     endfor
- 
+
 ;/*************************************************************************************
 ;                   GETTING encounter info
 ;**************************************************************************************/
 Select into "nl:"
 FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
- 
+
         ,encounter e
         ,organization org
         ,encntr_alias   ea
         ,encntr_alias   ea2
 PLAN d
- 
- 
+
+
     join e WHERE e.encntr_id = outerjoin(rs->qual[d.seq].EncntrId)
     join org where org.organization_id = outerjoin(e.organization_id)
- 
+
     join ea where ea.encntr_id = outerjoin(e.encntr_id);)
     AND EA.encntr_alias_type_cd = outerjoin(1077.00); FIN
     AND EA.active_ind = outerjoin(1)
@@ -1085,13 +1086,13 @@ PLAN d
     join ea2 where ea2.encntr_id =outerjoin(e.encntr_id)
     AND EA2.encntr_alias_type_cd = outerjoin(1079.00); MRN
     AND EA2.active_ind = outerjoin(1)
- 
+
     ;join e where e.encntr_id = outerjoin(ea.encntr_id)
- 
+
 ;order by d.seq
- 
+
 detail
- 
+
     rs->QUAL[d.seq]->ENCNTR_CD = E.encntr_type_cd
     rs->QUAL[d.seq]->Encntr_Type = uar_get_code_display(e.encntr_type_cd)
     rs->QUAL[d.seq]->Clinic_Name = uar_get_code_display(e.loc_facility_cd)
@@ -1102,10 +1103,10 @@ detail
     RS->QUAL[d.seq].visit_reason = e.reason_for_visit
     RS->QUAL[d.seq].admit_from = e.admit_src_cd
     RS->QUAL[d.seq].discharge_dttm = e.disch_dt_tm
- 
+
  ;  if(RS->QUAL[d.seq].admit_from in(5070292.00,    5044615.00 ,    309193.00))
 ;   RS->QUAL[d.seq].jail = "Y"
- 
+
     if (RS->QUAL[d.seq].admit_from in(423346946.00, 1692366029.00, 5070292.00, 56494552.00, 4190886.00))
     RS->QUAL[d.seq].ltc = "Y"
     elseif(RS->QUAL[d.seq].admit_from in( 5070300
@@ -1122,30 +1123,30 @@ detail
     ))
     RS->QUAL[d.seq].ltc = "N"
     endif
- 
+
 with nocounter, time = 400
- 
+
 ;;/**************************************************************************************
 ;;                  GETTING LTC powerform results
 ;;****************************************************************************************/
 ;Select into "nl:"
-; 
+;
 ;FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
 ;,clinical_event ce
-; 
+;
 ;PLAN D
-; 
+;
 ;JOIN ce where ce.encntr_id = rs->qual[d.seq].EncntrId
 ;and ce.event_cd in (823735959.00)
-; 
+;
 ;detail
-; 
+;
 ;if(ce.result_val in("Nursing home","Assisted living"))
-; 
+;
 ;RS->QUAL[d.seq].ltc = "Y"
-; 
+;
 ;endif
-; 
+;
 ;with nocounter, format, time = 500
 ;;/*******************************************************************************************
 ;;                  GETTING order info
@@ -1156,30 +1157,30 @@ with nocounter, time = 400
 ;       ,order_action oa
 ;       ,prsnl pr
 ;       ,prsnl_alias pra
-; 
+;
 ;PLAN d
-; 
+;
 ;   join o where o.order_id = rs->qual[d.seq].orderid
-; 
+;
 ;   join oa where oa.order_id = o.order_id
-; 
+;
 ;   join pr where pr.person_id = oa.order_provider_id
-; 
+;
 ;   join pra where pra.person_id = pr.person_id and pra.prsnl_alias_type_cd = 4038127.00 ;npi
-; 
-; 
+;
+;
 ;order by d.seq
-; 
+;
 ;detail
-; 
+;
 ;rs->QUAL[d.seq].Order_PROVIDER = concat(trim(pr.name_last) ,", ", trim(pr.name_first))
 ;rs->QUAL[d.seq].npi = replace(replace(
 ;                           trim(substring(1,200,pra.alias)),char(10),""),char(13),"")
-; 
+;
 ;if(rs->QUAL[d.seq].Order_PROVIDER = "*Unassigned*")
 ;rs->QUAL[d.seq].Order_PROVIDER = " "
 ;endif
-; 
+;
 ;with nocounter, time = 300
 ;;/**************************************************************************************
 ;;                  GETTING future order info
@@ -1212,7 +1213,7 @@ with nocounter, time = 400
 ;;    AND EA2.active_ind = outerjoin(1)
 ;;
 ;;order by d.seq
-; 
+;
 ;;detail
 ;;
 ;;rs->QUAL[d.seq].ENCNTR_ID_2 = e.encntr_id
@@ -1254,18 +1255,18 @@ with nocounter, time = 400
 ;Select into "nl:"
 ;FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
 ;   ,order_detail od
-; 
+;
 ; plan d
-; 
+;
 ;join od where od.order_id = rs->qual[d.seq].OrderId
 ;and od.oe_field_id =       12584.00
 ;detail
-; 
+;
 ;rs->QUAL[d.seq].Specimen = OD.oe_field_display_value
-; 
-; 
+;
+;
 ;with nocounter, time = 200
- 
+
 ;/************************************************************************************
 ;                   GETTING pt address
 ;*************************************************************************************/
@@ -1273,14 +1274,14 @@ Select into "nl:"
 FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
         ,ADDRESS A
 PLAN d
- 
+
     join A WHERE A.parent_entity_id = rs->qual[d.seq].PERSONID
     AND A.address_type_cd = 756.00  ;Home
     and a.active_ind = 1
     and a.end_effective_dt_tm > cnvtdatetime(sysdate)
- 
+
 order by d.seq
- 
+
 detail
 rs->QUAL[D.SEQ].Zip = A.zipcode
 rs->QUAL[D.SEQ].County = UAR_GET_CODE_DISPLAY(A.county_cd)
@@ -1288,7 +1289,7 @@ rs->QUAL[D.SEQ].City = A.CITY
 rs->QUAL[D.SEQ].State_cd = A.state
 RS->QUAL[D.SEQ].StreetAddr = A.street_addr
 RS->QUAL[D.SEQ].StreetAddr2 = A.street_addr2
- 
+
 If(rs->QUAL[D.SEQ].County = "Virginia")
 rs->QUAL[D.SEQ].County = " "
 endif
@@ -1300,23 +1301,23 @@ Select into "nl:"
 FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
         ,ADDRESS A
         ,PHONE PH
- 
+
 PLAN d
- 
+
     join A WHERE A.parent_entity_id = rs->qual[d.seq].org_id
     and a.active_ind = 1
     and a.end_effective_dt_tm > cnvtdatetime(sysdate)
     and a.address_type_cd = 754.00
- 
+
     JOIN PH WHERE PH.parent_entity_id = outerjoin(A.parent_entity_id)
     AND PH.active_ind = outerjoin(1)
     and ph.beg_effective_dt_tm < outerjoin(cnvtdatetime(curdate,curtime))
     and ph.end_effective_dt_tm > outerjoin(cnvtdatetime(curdate,curtime))
     and ph.phone_type_cd =         outerjoin(163.00)
     ;AND PH.parent_entity_name = "ORGANIZATION"
- 
+
 order by d.seq
- 
+
 detail
 rs->QUAL[D.SEQ].parent_entity_id = a.parent_entity_id
 rs->QUAL[D.SEQ].FAC_PHONE = PH.phone_num_key
@@ -1326,7 +1327,7 @@ rs->QUAL[D.SEQ].fac_City = A.CITY
 rs->QUAL[D.SEQ].fac_State = A.state
 RS->QUAL[D.SEQ].fac_StreetAddr = A.street_addr
 RS->QUAL[D.SEQ].fac_StreetAddr2 = A.street_addr2
- 
+
 If(rs->QUAL[D.SEQ].parent_entity_id in(
       589723.00 ;Franklin Square Hospital Center
 ,      628085.00    ;Georgetown University Hospital
@@ -1340,10 +1341,10 @@ If(rs->QUAL[D.SEQ].parent_entity_id in(
 ,      628088.00    ;Washington Hospital Center
 )or RS->QUAL[D.SEQ].fac_StreetAddr2 = "Hospital:*"
 or RS->QUAL[D.SEQ].fac_StreetAddr2 = "202-*")
- 
+
 RS->QUAL[D.SEQ].fac_StreetAddr2 = " "
 endif
- 
+
 with nocounter, time = 500
 
 ;;/************************************************************************************
@@ -1353,25 +1354,25 @@ Select into "nl:"
 FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
         , ce_event_prsnl cep
 PLAN d
- 
+
     ;join cE WHERE cE.event_id = rs->qual[d.seq].event_id
     join cep where cep.event_id = rs->qual[d.seq].event_id
     ;and (cep.action_type_cd =     OUTERJOIN(103.00) ; order
     ;or cep.action_type_cd =     OUTERJOIN(98.00)) ; correct
- 
+
     ORDER BY CEP.action_dt_tm
- 
+
 detail
- 
+
 rs->QUAL[d.seq]->action_event = uar_get_code_display(cep.action_type_cd)
- 
+
 with nocounter, time = 300
- 
+
 ;;;/********************************************************************************************
 ;;;                     GETTING diagnosis of pt
 ;;;*********************************************************************************************/
-; 
-; 
+;
+;
 ;;Select into "nl:"
 ;;FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
 ;;      ,diagnosis      dX
@@ -1497,7 +1498,7 @@ with nocounter, time = 300
 ;;
 ;;
 ;;with nocounter, time = 400
-; 
+;
 ;;/************************************************************************************
 ;;                  GETTING pt first test
 ;;*************************************************************************************/
@@ -1505,7 +1506,7 @@ with nocounter, time = 300
 ;FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
 ;       ,clinical_event c
 ;PLAN d
-; 
+;
 ;   join c WHERE c.person_id = rs->qual[d.seq].PERSONID
 ;   and c.valid_until_dt_tm >= cnvtdatetime(curdate,curtime3)
 ;   and c.event_class_cd in ( 236.00,224.00)
@@ -1537,70 +1538,70 @@ with nocounter, time = 300
 ;               ,2404008691 ;POC Ag
 ;               ;,104260588.00 ; flu rapid test - for testing - remove*****************
 ;   )
-; 
-; 
+;
+;
 ;order by c.person_id
-; 
+;
 ; head c.person_id
 ; cnt = 0           ;count_example
 ;detail
 ; cnt = cnt + 1
-; 
+;
 ; IF(cnt = 1)
 ; rs->qual[d.seq].FIRST_TEST = "Y"
 ; elseIF(cnt > 1)
 ; rs->qual[d.seq].FIRST_TEST = "N"
 ; ENDIF
-; 
+;
 ;with nocounter, time = 100
-; 
+;
 ;;/**************************************************************************************
 ;;                  GETTING Pregnancy powerform results
 ;;****************************************************************************************/
 ;Select into "nl:"
-; 
+;
 ;FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
 ;,clinical_event ce
-; 
+;
 ;PLAN D
-; 
+;
 ;JOIN ce where ce.encntr_id = rs->qual[d.seq].EncntrId
 ;and ce.event_cd =      704785.00;  Pregnancy
-; 
-; 
+;
+;
 ;detail
-; 
+;
 ;if(ce.result_val = "Confirmed positive")
-; 
+;
 ;rs->QUAL[D.SEQ].preg_ind = "Y"
-; 
+;
 ;elseif(ce.result_val in( "Patient denies","Confirmed negative"))
-; 
+;
 ;rs->QUAL[D.SEQ].preg_ind = "N"
-; 
+;
 ;;elseif(ce.result_val = "Possible unconfirmed")
 ;;
 ;;rs->QUAL[D.SEQ].preg_ind = "Possibly Pregnant"
-; 
+;
 ;endif
-; 
+;
 ;with nocounter, format, time = 500
-; 
+;
 ;;======================================================================
 ;; GETTING pregnancy indicator
 ;;======================================================================
-; 
+;
 ;Select into "nl:"
 ;FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
 ;  , Problem pr
 ;  , nomenclature n
 ;  , pregnancy_instance pi
 ;  , pregnancy_estimate pe
-; 
-; 
+;
+;
 ;PLAN D1
 ; JOIN pR WHERE pR.person_id = RS->QUAL[D1.SEQ].PersonId
-; 
+;
 ;    and pR.active_ind = 1
 ;    AND PR.active_status_cd = 188
 ;    and pR.life_cycle_status_cd = 3301 ; active
@@ -1609,36 +1610,36 @@ with nocounter, time = 300
 ;       AND PR.problem_instance_id = (SELECT MAX(pR2.PROBLEM_INSTANCE_ID)
 ;                               from PROBLEM   PR2
 ;                               where PR.PROBLEM_id = pR2.PROBLEM_id and pR2.active_ind = 1)
-; 
+;
 ;JOIN PI WHERE PI.person_id = Pr.person_id and pi.active_ind = 1
 ;       AND Pi.pregnancy_id = (SELECT MAX(pi2.pregnancy_id)
 ;                               from PRegnancy_instance   Pi2
 ;                               where Pi.person_id = pi2.person_id and pi2.active_ind = 1)
-; 
+;
 ;join pe where pi.pregnancy_id = pe.pregnancy_id and pe.active_ind = 1
 ;       and pe.pregnancy_estimate_id = (SELECT MAX(pe2.pregnancy_estimate_id)
 ;                               from PRegnancy_estimate  Pe2
 ;                               where Pe.pregnancy_id = pe2.pregnancy_id and pe2.active_ind = 1)
-; 
+;
 ;join n where n.nomenclature_id = pR.nomenclature_id
 ;       and n.source_identifier_keycap in (
 ;                               "191073013"
 ;                                           )
 ;                                           AND N.active_ind = 1
 ;                                           AND N.active_status_cd = 188 ; ACTIVE
-; 
+;
 ;; JOIN PI WHERE PI.person_id = P.person_id and pi.active_ind = 1
 ;; AND Pi.pregnancy_id = (SELECT MAX(pi2.pregnancy_id)
 ;;                              from PRegnancy_instance   Pi2
 ;;                              where Pi.person_id = pi2.person_id and pi2.active_ind = 1)
 ; order by d1.seq
-; 
+;
 ; DETAIL
-; 
+;
 ;  RS->QUAL[d1.seq].preg_ind = "Y"
-; 
+;
 ; with nocounter, time = 500
-; 
+;
 ; ;/********************************************************************************************
 ;;                  GETTING onset date info
 ;;*********************************************************************************************/
@@ -1646,95 +1647,95 @@ with nocounter, time = 300
 ;FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
 ;   ,clinical_event ce
 ;   ,ce_date_result cdr
-; 
+;
 ; plan d
-; 
+;
 ;join ce where ce.person_id = rs->qual[d.seq].PersonId
 ;and ce.encntr_id = rs->qual[d.seq].ENCNTRid
 ;and ce.event_cd in( 2273998547.00, 2273998843.00,2230980383.00,2385366457.00,2384922167.00,2384924885.00
 ;)
-; 
+;
 ;join cdr where cdr.event_id = outerjoin(ce.event_id)
-; 
+;
 ;detail
-; 
+;
 ; if(ce.event_cd = 2273998547.00)
 ;rs->QUAL[d.seq].onset_dt = FORMAT(CDR.result_dt_tm, "MM/DD/YYYY;;Q");cnvtdatetime(ce.result_val, "MM/DD/YYYY hh:mm:ss;;D")
-; 
+;
 ;elseif(ce.event_cd = 2273998843.00 and ce.result_val != "*Asympomatic*")
 ;rs->QUAL[d.seq].symptoms = "Y"
-; 
+;
 ;elseif(ce.event_cd = 2273998843.00 and ce.result_val = "*Asympomatic*")
 ;rs->QUAL[d.seq].symptoms = "N"
-; 
+;
 ;elseif(ce.event_cd = 2230980383.00 and ce.result_val in ("None*"))
 ;rs->QUAL[d.seq].symptoms = "N"
-; 
+;
 ;elseif(ce.event_cd = 2230980383.00 and ce.result_val not in ("None*","*Unable*"))
 ;rs->QUAL[d.seq].symptoms = "Y"
-; 
+;
 ;elseif(ce.event_cd = 2385366457.00 and ce.result_val in ("Yes"))
 ;rs->QUAL[d.seq].oc_stat = "Y"
-; 
+;
 ;elseif(ce.event_cd = 2385366457.00 and ce.result_val in ("No"))
 ;rs->QUAL[d.seq].oc_stat = "N"
-; 
+;
 ;elseif(ce.event_cd = 2385366457.00 and ce.result_val in ("Unknown"))
 ;rs->QUAL[d.seq].oc_stat = "UNK"
-; 
+;
 ;elseif(ce.event_cd = 2384922167.00 and ce.result_val in ("Yes"))
 ;rs->QUAL[d.seq].ltc = "Y"
-; 
+;
 ;elseif(ce.event_cd = 2384922167.00 and ce.result_val in ("No"))
 ;rs->QUAL[d.seq].ltc= "N"
-; 
+;
 ;elseif(ce.event_cd = 2384922167.00 and ce.result_val in ("Unknown"))
 ;rs->QUAL[d.seq].ltc = "UNK"
-; 
+;
 ;elseif(ce.event_cd = 2384924885.00 and ce.result_val in ("Yes"))
 ;rs->QUAL[d.seq].preg_ind = "Y"
-; 
+;
 ;elseif(ce.event_cd = 2384924885.00 and ce.result_val in ("No"))
 ;rs->QUAL[d.seq].preg_ind = "N"
-; 
+;
 ;elseif(ce.event_cd = 2384924885.00 and ce.result_val in ("Unknown"))
 ;rs->QUAL[d.seq].preg_ind = "UNK"
-; 
+;
 ;endif
-; 
+;
 ;;if(rs->QUAL[d.seq].symptoms not in ("Y","N"))
 ;;rs->QUAL[d.seq].symptoms = "UNK"
 ;;endif
-; 
+;
 ;with nocounter, time = 500
 ;/****************************************************************************************************
 ;                   ;get patient employment information
 ;*****************************************************************************************************/
-; 
+;
 ;Select into "nl:"
 ;FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
 ;   ,person_org_reltn por
-; 
+;
 ;PLAN D1
-; 
-; 
+;
+;
 ;join por
 ;   where por.person_id =  RS->QUAL[D1.SEQ].PERSONID
 ;       and por.active_ind = 1
 ;       and por.end_effective_dt_tm > cnvtdatetime(curdate,curtime3)
 ;       and por.beg_effective_dt_tm <= cnvtdatetime(curdate,curtime3)
 ;       and por.person_org_reltn_cd = 1136.00;employer
-; 
+;
 ;detail
-; 
+;
 ;   RS->QUAL[D1.SEQ].occupation =   uar_get_code_display(por.empl_status_cd)
-; 
+;
 ;   if(RS->QUAL[D1.SEQ].occupation in ("Retired","Not Employed","Self Employed"))
 ;   RS->QUAL[D1.SEQ].oc_stat = "N"
 ;   endif
-; 
+;
 ;with nocounter,time = 300, ORAHINTCBO("INDEX( POR XIE1PERSON_ORG_RELTN)")
- 
+
 /*******************************************************************************************
                OUTPUT DATA TO $OUTDEV/EMAILING
 ********************************************************************************************/
@@ -1742,9 +1743,9 @@ with nocounter, time = 300
 If($Type = 2)
 ;#exit_program
 ; if (size(rs->QUAL,5) > 0); AT LEAST ONE PATIENT FOUND ABOVE
- 
+
  SELECT INTO VALUE(FILE_NAME)
- 
+
     TEST_NAME = trim(SUBSTRING(1, 50, rs->QUAL[D1.SEQ].OrderDesc))
     , RESULT = trim(SUBSTRING(1, 100, rs->QUAL[D1.SEQ].Result))
     , UNIT = " "
@@ -1782,7 +1783,7 @@ If($Type = 2)
     , REPORTING_FACILITY = trim(SUBSTRING(1, 200, rs->QUAL[D1.SEQ].Perform_Location))
     , REPORTING_CLIA = rs->QUAL[D1.SEQ].PerformingCLIA
     ;, encntr_type = rs->QUAL[D1.SEQ].Encntr_Type
- 
+
     , ORDER_DATE = format(RS->QUAL[d1.seq].ORDER_DTTM, "MM/DD/YYYY;;D")
     , TEST_CODE = trim(SUBSTRING(1, 20, rs->QUAL[D1.SEQ].loinc))
     , RESULT_CODE = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].result_snow))
@@ -1804,40 +1805,40 @@ If($Type = 2)
     , REG_DATE = format(RS->QUAL[d1.seq].reg_dt, "MM/DD/YYYY hh:mm:ss;;D")
     , DISCHARGE_DATE = format(RS->QUAL[d1.seq].discharge_dttm, "MM/DD/YYYY hh:mm:ss;;D")
     ;, encntr_type = rs->QUAL[D1.SEQ].Encntr_Type
- 
- 
+
+
     FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
- 
+
     plan d1
- 
+
     where ;(rs->QUAL[d1.seq].State_cd in( "DC","MD") or rs->QUAL[d1.seq].fac_State in( "DC","MD"))
-     ;AND 
+     ;AND
      rs->QUAL[d1.seq].48hr_ind = 1
      and rs->QUAL[d1.seq].date_diff > 1
     and rs->QUAL[d1.seq].Result in ("POS*","DET*")
     ;AND rs->QUAL[d1.seq].action_event != "Endorse"
- 
+
     with Heading, PCFormat('"', ',',1), format=STREAM, compress, nocounter, format;, maxrow=50000;'', ',', 1,1
- 
- 
+
+
     select into $outdev
         msg="success"
         from dummyt
         with nocounter
- 
+
  elseif($type = 1)
- 
+
  if (size(rs->QUAL,5) > 0)
- 
+
     select into $outdev
- 
+
     TEST_NAME = trim(SUBSTRING(1, 50, rs->QUAL[D1.SEQ].OrderDesc))
     , RESULT = if(rs->QUAL[D1.SEQ].Result != " ")
     trim(SUBSTRING(1, 1000, rs->QUAL[D1.SEQ].Result))
     else
     trim(rs->QUAL[D1.SEQ].INT_Result)
     endif
- 
+
     , UNIT = " "
     ;, RESULTCMT = trim(SUBSTRING(1, 2000, rs->QUAL[D1.SEQ].ResultCmt))
     , ORDER_NUMBER = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].ACCESSION))
@@ -1874,7 +1875,7 @@ If($Type = 2)
     , REPORTING_FACILITY = trim(SUBSTRING(1, 200, rs->QUAL[D1.SEQ].Perform_Location))
     , REPORTING_CLIA = rs->QUAL[D1.SEQ].PerformingCLIA
     ;, encntr_type = rs->QUAL[D1.SEQ].Encntr_Type
- 
+
     , ORDER_DATE = format(RS->QUAL[d1.seq].ORDER_DTTM, "MM/DD/YYYY;;D")
     , TEST_CODE = trim(SUBSTRING(1, 20, rs->QUAL[D1.SEQ].loinc))
     , RESULT_CODE = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].result_snow))
@@ -1895,8 +1896,8 @@ If($Type = 2)
     , PREGNANT = trim(SUBSTRING(1, 20, rs->QUAL[D1.SEQ].preg_ind))
     , LOCATION = trim(SUBSTRING(1, 200, rs->QUAL[D1.SEQ].LOCATION))
     , FACILITY = trim(SUBSTRING(1, 200, rs->QUAL[D1.SEQ].FACILITY))
- 
- 
+
+
     , event_cd = rs->QUAL[D1.SEQ].specimenp
     , event = rs->QUAL[D1.SEQ].EVENT
     , ENCNTRID = rs->QUAL[D1.SEQ].EncntrId
@@ -1916,26 +1917,26 @@ If($Type = 2)
     , EARLY_LAST_RESULT_DIFF = RS->QUAL[d1.seq].RESULT_DTTM_DIFF
     ;, UPDATE_COUNT = RS->QUAL[d1.seq].UPDATE_COUNT
     , INCLUDE = RS->QUAL[d1.seq].INCLUDE
-    
+
     FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
- 
- 
+
+
     plan d1
- 
+
     where ;(rs->QUAL[d1.seq].State_cd in( "DC","MD") or rs->QUAL[d1.seq].fac_State in( "DC","MD"))
-     ;AND 
+     ;AND
      rs->QUAL[d1.seq].48hr_ind = 1
      and rs->QUAL[d1.seq].date_diff > 1
     and rs->QUAL[d1.seq].Result in ("POS*","DET*")
-    
+
     ;AND rs->QUAL[d1.seq].action_event != "Endorse"
 
- 
+
     with nocounter, time = 1000, format, separator = " "
- 
+
 else
- 
- 
+
+
     select into $OUTDEV
         from dummyt
         Detail
@@ -1947,7 +1948,7 @@ else
             row + 1
         with format, separator = " "
 endif
- 
+
 elseif($type = 3)
 
     ;001->
@@ -1960,7 +1961,7 @@ elseif($type = 3)
          and rs->QUAL[d1.seq].date_diff >  1
          and rs->QUAL[d1.seq].Result    in ("POS*","DET*")
     with nocounter
-    
+
     if(curqual = 0)
         set FILE_NAME = EMPTY_FILE_NAME
         set FILENAME  = emptyfileName
@@ -1969,7 +1970,7 @@ elseif($type = 3)
     call echo(build('FILE_NAME:', FILE_NAME))
     call echo(build('FILENAME:', FILENAME))
     ;001<-
- 
+
     select into value(FILENAME)
           TEST_NAME                = trim(SUBSTRING(1,  50, rs->QUAL[D1.SEQ].OrderDesc                ))
         , RESULT                   = trim(SUBSTRING(1, 100, rs->QUAL[D1.SEQ].Result                   ))
@@ -2028,25 +2029,29 @@ elseif($type = 3)
         , lAST_RESULT              = trim(SUBSTRING(1,  30, rs->QUAL[D1.SEQ].LAST_result              ))
         , EARLY_LAST_RESULT_DIFF   = RS->QUAL[d1.seq].RESULT_DTTM_DIFF
         , INCLUDE                  = RS->QUAL[d1.seq].INCLUDE
-     
-     
+        , PERSON_ID                = RS->QUAL[d1.seq].PersonId  ;004
+        , ENCNTR_ID                = RS->QUAL[d1.seq].EncntrId  ;004
+        , Document_ID              = ''                         ;004
+        , RR_NOTES                 = ''                         ;004
+
+
       FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
-      
+
       plan d1
        where SIZE(RS->QUAL,5) > 0   ;002 noticed this in testing.  Fails on empty.
              ;(rs->QUAL[d1.seq].State_cd in( "DC","MD") or rs->QUAL[d1.seq].fac_State in( "DC","MD"))
          and rs->QUAL[d1.seq].48hr_ind  =  1
          and rs->QUAL[d1.seq].date_diff >  1
          and rs->QUAL[d1.seq].Result    in ("POS*","DET*")
-        
-     
+
+
     with Heading, PCFormat('"', ',', 1), format=STREAM, Format,  NoCounter , compress
-     
-     
+
+
     ;***********EMAIL THE ACTUAL ZIPPED FILE**************************** ;MOD004
     ;002-> Refactoring here to add B41
     if(CURDOMAIN in (PRODUCTION_DOMAIN, BUILD_DOMAIN))
-    
+
         SET  AIX_COMMAND  =
             build2 ( "cat ", EMAIL_BODY ," | tr -d \\r",
                    " | mailx  -S from='report@medstar.net' -s '" ,EMAIL_SUBJECT , "' -a ", FILENAME, " ", EMAIL_ADDRESS)
@@ -2062,12 +2067,12 @@ elseif($type = 3)
 
         SET AIX_CMDLEN = SIZE(TRIM(AIX_COMMAND))
         SET AIX_CMDSTATUS = 0
-        
+
         call echo(AIX_COMMAND)
-        
+
         CALL DCL(AIX_COMMAND,AIX_CMDLEN, AIX_CMDSTATUS)
     endif
-     
+
 endif
 
 
@@ -2077,7 +2082,7 @@ subroutine  subroutine_get_blob(this_event_id)
     declare blob_ret_len = i4 with noconstant(0), public,protect
     set blob_in=fillstring(30000," ")
     declare compression_cd = f8 with public,protect
- 
+
     select into "nl:"
         b.BLOB_CONTENTS
     from ce_blob b
@@ -2088,7 +2093,7 @@ subroutine  subroutine_get_blob(this_event_id)
         blob_in =b.BLOB_CONTENTS
         compression_cd = b.compression_cd
     with nocounter
- 
+
     call echo(concat("compression_cd = ",cnvtstring(compression_cd)))
     set blob_out=fillstring(30000," ")
     set blob_out2=fillstring(30000," ")
@@ -2112,7 +2117,6 @@ subroutine  subroutine_get_blob(this_event_id)
     call echo(blob_out3)
     return(blob_out3)
 end ;subroutine
- 
+
 end
 go
- 

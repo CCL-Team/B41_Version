@@ -27,7 +27,8 @@ Mod Date       Analyst           MCGA   Comment
 --- ---------- ----------------- ------ ---------------------------------------------------------------------------------------
 N/A 08/11/2022 Jeremy Daniel     N/A    Initial Release
 001 08/31/2023 Michael Mayes     N/A    (TASK PENDING)Changes to allow patient state to also allow pats in; Empty file name
-002 01/25/2024 Michael Mayes      344896 (SCTASK0066907) Adding result.
+002 01/25/2024 Michael Mayes     344896 (SCTASK0066907) Adding result.
+003 07/09/2024 Michael Mayes     239760 (SCTASK0093996) Adding columns for their working sessions to the file.
 *************END OF ALL MODCONTROL BLOCKS* ************************************************************************************/
 drop program 14_ecase_testing_48hr_pdc_md go
 create program 14_ecase_testing_48hr_pdc_md
@@ -1904,6 +1905,10 @@ elseif($type = 3)
         , PREGNANT                 = trim(SUBSTRING(1, 20, rs->QUAL[D1.SEQ].preg_ind         ))
         , REG_DATE                 = format(RS->QUAL[d1.seq].reg_dt, "MM/DD/YYYY hh:mm:ss;;D")
         , DISCHARGE_DATE           = format(RS->QUAL[d1.seq].discharge_dttm, "MM/DD/YYYY hh:mm:ss;;D")
+        , PERSON_ID                = RS->QUAL[d1.seq].PersonId  ;003
+        , ENCNTR_ID                = RS->QUAL[d1.seq].EncntrId  ;003
+        , Document_ID              = ''                         ;003
+        , RR_NOTES                 = ''                         ;003
     FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
 
     plan d1
