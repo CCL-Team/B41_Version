@@ -64,25 +64,24 @@ set html_ret = build2(^<div class="madc_parent"></div>^)
 ;This is a placeholder image stolen from crisp.  It brings in our JS and CSS after the fact when our component loads.
 ;It doesn't seem to use the server which makes sense I suppose.  Bedrock settings probably still do.
 ;You'll have to be very careful that any CSS/JS doesn't conflict with other components.
-;;set html_ret = build2(html_ret, ^<img src='I:\\mPages\\common\\img\\blank.png' width='0px' height='0px' ^,
+;set html_ret = build2(html_ret, ^<img src='I:\\mPages\\common\\img\\blank.png' width='0px' height='0px' ^,
 set html_ret = build2(html_ret, ^<img src='../custom_mpage_content/mpage_reference_files/common/img/blank.png' width='0px' height='0px' ^,
                                              ;JS
                                      ^onLoad='var compJS = document.createElement("script");^,
 	                                         ^compJS.setAttribute("type","text/javascript");^,
 	                                         ^compJS.setAttribute("src",^,
-                                                      ;;^"I:\\mPages\\adv_directives\\js\\mp_adv_dir_comp.js");^,
-                                             ^"../custom_mpage_content/mpage_reference_files/adv_directives/js/mp_adv_dir_comp.js");^,
+                                             ;         ^"I:\\mPages\\adv_directives\\js\\mp_adv_dir_comp.js");^,
+                                                 ^"../custom_mpage_content/mpage_reference_files/adv_directives/js/mp_adv_dir_comp.js");^,
 		                                     ^document.getElementsByTagName("head")[0].appendChild(compJS);^,
                                              ;CSS
                                              ^var compCSS = document.createElement("link");^,
 	                                         ^compCSS.setAttribute("rel","stylesheet");^,
 	                                         ^compCSS.setAttribute("href",^,
-                                                      ;;^"I:\\mPages\\adv_directives\\css\\mp_adv_dir_comp.css");^,
-                                              ^"../custom_mpage_content/mpage_reference_files/adv_directives/css/mp_adv_dir_comp.css");^,
+                                             ;         ^"I:\\mPages\\adv_directives\\css\\mp_adv_dir_comp.css");^,
+		                                         ^"../custom_mpage_content/mpage_reference_files/adv_directives/css/mp_adv_dir_comp.css");^,
 		                                     ^document.getElementsByTagName("head")[0].appendChild(compCSS);^,
 	                                        ^'^,
                                 ^>^)
-                           
  
  
 /**************************************************************

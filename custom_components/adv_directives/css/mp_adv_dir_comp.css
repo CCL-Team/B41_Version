@@ -1,3 +1,8 @@
+.madc_debug{
+    border: 1px solid red;
+}
+
+
 .madc_error{
     font-family: tahoma; 
     font-weight: bold;
@@ -30,8 +35,8 @@
 }
 
 .madc_table {
-    table-layout: auto;
-    font-weight : normal;
+    table-layout   : auto;
+    font-weight    : normal;
 }
 
 .madc_doc_div {
@@ -52,11 +57,12 @@
 }
 
 .madc_ttxt {
-    font-family: tahoma; 
-    zcolor     : black;
-    font-weight: bold;
-    width      : 100%;  /* With table->table-layout: auto and thead:nowrap this forces this column to grow and the headers to shrink */
+    font-family : tahoma; 
+    color       : black;
+    width       : 100%;  /* With table->table-layout: auto and thead:nowrap this forces this column to grow and the headers to shrink */
+    padding-left: 2rem;
 }
+
 
 .madc_cont_head{
     font-family   : Arial; 

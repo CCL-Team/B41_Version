@@ -30,29 +30,36 @@ function getAdvancedDirectivesJSON(){
                     $(".madc_parent").empty();  //emptying out the component before redrawing
                     madcCreateBaseComp();
                     
-                    if(json.REC.ADV_DIR_LIST && json.REC.ADV_DIR_LIST.length){
+                    if((  json.REC.NEW_AD_MOLST_FORM_LIST && json.REC.NEW_AD_MOLST_FORM_LIST.NEW_AD_MOLST_DATA_IND > 0)
+                       //|| json.REC.NEW_AD_MOLST_FORM_IND === 1
+                      ){
                         //Just using the first activity_id, they should all be the same, and we know we have at least 1.
 						
                         refId = json.REC.DCP_FORMS_REF_ID;
                         
-                        madcCreateFormLink(json.REC.PERSON_ID, json.REC.ENCNTR_ID, json.REC.DCP_FORMS_ACTIVITY_ID, 
-                                           refId, 'Advance Directives', 0, 0, json.REC.VERSION_DT_TM);
-						madcCreateTable(json.REC.ADV_DIR_LIST);
+
+						
+                        if(json.REC.NEW_AD_MOLST_FORM_IND === 0){
+                            
+                            madcCreateFormLink( json.REC.PERSON_ID, json.REC.ENCNTR_ID, 0
+                                            , json.REC.AD_FORM_REF_ID, 'OLD Advance Directives/MO(L)ST', 1, '');
+                                            
+                            //madcCreateTable(json.REC.ADV_DIR_LIST);
+                            madcCreateADMolstLayout(json.REC.NEW_AD_MOLST_FORM_LIST);
+                            
+                        }else{
+                            
+                            madcCreateFormLink(json.REC.PERSON_ID, json.REC.ENCNTR_ID, json.REC.DCP_FORMS_ACTIVITY_ID, 
+                                               refId, 'Advance Directives/MO(L)ST', 0, json.REC.VERSION_DT_TM);
+                            
+                            madcCreateADMolstLayout(json.REC.NEW_AD_MOLST_FORM_LIST);   
+                        }                                 
+                              
                     }
                     else{
-                        encType = json.REC.ENCNTR_TYPE;
-                        
-                        //Here they wanted flexed forms based on if the case was amb or not.
-                        if(encType === 'Inpatient' ||
-                           encType === 'Observation' ||
-                           encType === 'Emergency' ||   
-                           encType === 'Preadmit'){
-                            madcCreateFormLink(json.REC.PERSON_ID, json.REC.ENCNTR_ID, 0
-                                              , json.REC.INPAT_AD_FORM_REF_ID, 'NO Advance Directives Documented', 1, 0, '');
-                        }else{
-                            madcCreateFormLink(json.REC.PERSON_ID, json.REC.ENCNTR_ID, 0
-                                              , json.REC.AMB_AD_FORM_REF_ID, 'NO AMB Advance Directives Documented', 1, 1, '');
-                        }
+                        madcCreateFormLink( json.REC.PERSON_ID, json.REC.ENCNTR_ID, 0
+                                          , json.REC.AD_FORM_REF_ID, 'NO Advance Directives/MO(L)ST', 1, '');
+                     
                     }
                     
                     madcCreateADVaultForms(json.REC);
@@ -69,6 +76,7 @@ function getAdvancedDirectivesJSON(){
         
         //  Call the ccl program and send the parameter string
         cclData.open('GET', "mp_get_adv_dir");
+        //alert('mp_get_adv_dir ' + "^MINE^, value($VIS_Encntrid$), value($PAT_Personid$), 0");
         cclData.send("^MINE^, value($VIS_Encntrid$), value($PAT_Personid$), 0");
         
     }
@@ -106,9 +114,9 @@ function madcCreateBaseComp(){
     $(adVaultDiv) .addClass('madc_advault');
     $(scanDiv)    .addClass('madc_scan');
    
-    $(pfHead)     .addClass('madc_cont_head').text('AD PowerForms');
+    $(pfHead)     .addClass('madc_cont_head').text('Healthcare Decision Making PowerForms');
     $(adVaultHead).addClass('madc_cont_head').text('MOST/MOLST PowerForms');
-    $(scanHead)   .addClass('madc_cont_head').text('AD Clinical Documents');
+    $(scanHead)   .addClass('madc_cont_head').text('Healthcare Decision Making Clinical Documents');
     
     $(pfDivCont)     .addClass('madc_pf_cont');
     $(adVaultDivCont).addClass('madc_advault_cont');
@@ -136,10 +144,9 @@ function madcCreateBaseComp(){
        txt     (str):  Text to show in the message
        styleInd (i2):  0 - Normal Form
                        1 - Empty Form
-       ambInd   (i2):  0 - Inpatient, Observation, Emerg , preadmit
        dateTxt (str):  Date that the form was entered.
 */
-function madcCreateFormLink(perId, encId, actId, refId, txt, styleInd, ambInd, dateTxt){
+function madcCreateFormLink(perId, encId, actId, refId, txt, styleInd, dateTxt){
     //alert("in function")
     var msgP, icon, wrap, style, title, date, refId;
 	//alert(perId + "/" + encId + "/" + actId + "/" + txt + "/" + styleInd + "/" + dateTxt)
@@ -151,29 +158,18 @@ function madcCreateFormLink(perId, encId, actId, refId, txt, styleInd, ambInd, d
         style = styleInd === 1 ? 'madc_error' 
                                : 'madc_form';
         
-        if(ambInd === 1){
-            if(styleInd === 1){
-                title = "Click to open *new* AMB Advance Directives PowerForm";
-            }else{
-                title = "Click to open AMB Advance Directives PowerForm";
-            }
-        }
-        else{
-            if(styleInd === 1){
-                title = "Click to open *new* Advance Directives PowerForm";
-            }else{
-                title = "Click to open Advance Directives PowerForm";
-            }
-        }
         
+        if(styleInd === 1){
+            title = "Click to open *new* Advance Directives/MO(L)ST PowerForm";
+        }else{
+            title = "Click to open Advance Directives/MO(L)ST PowerForm";
+        }
+    
         $(wrap)
             .attr('title', title)
             .addClass('madc_link_cursor')
             .on('click', function(){
                              madcopenPowerForm(encId, perId, actId, refId, 0);
-                             
-                             //redraw after coming back
-                             getAdvancedDirectivesJSON();
                          });
         
         $(icon)
@@ -241,6 +237,73 @@ function madcCreateTable(adv_dir_list){
     $(".madc_pf_cont").append(table);
 }
 
+/* madcCreateADMolstLayout
+   Creates a display for the AD Molst Events/Values.
+   
+   Inputs:
+       adv_dir_list    (array):  Array of adv_dir_list elements
+*/
+function madcCreateADMolstLayout(new_list){
+    var table, tbody, tr, td, i, subList;
+    
+    table = $('<table>').addClass('madc_table');
+    tbody = $('<tbody>');
+    
+    var sectFunct = function(list){
+        
+        for(i = 0; i < list.length; i++){
+            tr = $('<tr>');
+            td = $('<td>');
+            
+            $(td).text(list[i].FORM_ELEMENT)
+                 .addClass('madc_thead');
+            
+            $(tr).append(td);
+            
+            td = $('<td>');
+            
+            $(td).text(list[i].EVENT_TAG)
+                 .addClass('madc_ttxt');
+                 
+            $(tr).append(td);
+            
+            if(i === list.length - 1){
+                $(tbody).append(tr);
+                
+                tr = $('<tr>');
+                
+                td = $('<td>');
+                $(td).html('&nbsp;');   //So hacky... I hate myself.
+                $(tr).append(td);
+                
+                td = $('<td>');
+                $(td).html('&nbsp;');   //So hacky... I hate myself.
+                $(tr).append(td);
+                
+                $(tbody).append(tr);
+                
+            }else{
+                $(tbody).append(tr);
+            }
+            
+            
+        }
+        
+    }
+    
+    sectFunct(new_list.AD_SECT);
+    sectFunct(new_list.MOLST_SECT);
+    sectFunct(new_list.DECISION1);
+    sectFunct(new_list.DECISION2);
+    sectFunct(new_list.FINAL);
+    
+    
+    $(table).append(tbody);
+        
+    $(".madc_pf_cont").append(table);
+    
+}
+
 
 /* madcCreateADVaultFormLink
    Creates a message to display in the component, with the link to an empty PowerForm or 
@@ -285,8 +348,6 @@ function madcCreateADVaultFormLink(json, refId, actId, formName, formDate, style
                 .addClass('madc_link_cursor')
                 .on('click',  function(){
                                      madcopenPowerForm(encId, perId, actId, refId, 0);
-                                     //redraw after coming back
-                                     getAdvancedDirectivesJSON();
                               });
             
         
@@ -502,7 +563,7 @@ function madcCreateDocLink(json, empty_ind){
             $(div).append(icon);
             
             $(form)
-                .text('No Advance Directives Documents Found')
+                .text('No Healthcare Decision Making Clinical Documents Found')
                 .addClass('madc_error');
                 
             $(div).append(form);
@@ -561,9 +622,25 @@ function madcverify()
 //Stolen from summary2 mpage
 function madcopenPowerForm(encntrId,personId,activityId,formId,chartMode)
 {
-  //var chartMode = 0;      // 0=Read/Write; 1=Read Only
-  var obj = window.external.DiscernObjectFactory("POWERFORM");
-  obj.OpenForm(parseFloat(personId), parseFloat(encntrId), parseFloat(formId), parseFloat(activityId), chartMode);
+    var chartMode = 0;      // 0=Read/Write; 1=Read Only
+    
+    if(window.navigator.userAgent.indexOf("Edg") > -1){
+        window.external.DiscernObjectFactory("POWERFORM")
+          .then(function (PowerFormMPageUtils){
+                    PowerFormMPageUtils.OpenForm(parseFloat(personId), parseFloat(encntrId), parseFloat(formId), parseFloat(activityId), chartMode)
+                        .then(function (){
+                            //redraw after coming back
+                            getAdvancedDirectivesJSON();
+                        });
+                }
+               );
+    }else{
+        var obj = window.external.DiscernObjectFactory("POWERFORM");
+        obj.OpenForm(parseFloat(personId), parseFloat(encntrId), parseFloat(formId), parseFloat(activityId), chartMode);
+                             
+        //redraw after coming back
+        getAdvancedDirectivesJSON();
+    }
 }
 
 function madcopenPowerNote(personId,eventId)

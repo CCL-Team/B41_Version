@@ -35,8 +35,12 @@ Mod Date       Analyst              OPAS/MCGA     Comment
 004 06/24/2020 Michael Mayes        217132    Reworking query to be based on result rather than dcp_forms_ref
                                               We were up to 4 forms, but it looks like more than 20 are present now
 005 10/21/2020 Michael Mayes        223712    Adding ADVault section for forms.
-006 08/10/2023 Mihcael Mayes                  SCTASK0038991 Correcting issue where the wrong form link can appear if forms on two 
+006 04/24/2023 Michael Mayes        236689    Big changes to the forms.... I made this change forever ago... but they asked for a
+                                              big investigation that has slowed this way down.
+007 08/10/2023 Mihcael Mayes                  SCTASK0038991 Correcting issue where the wrong form link can appear if forms on two 
                                                             patients are documented at the same time.
+008 03/01/2024 Michael Mayes        346036    More changes, that really probably should have been in the above MCGA, but they logged
+                                              a second for pre-go live changes.
 *************END OF ALL MODCONTROL BLOCKS* ********************************/
 drop   program mp_get_adv_dir:dba go
 create program mp_get_adv_dir:dba
@@ -69,14 +73,54 @@ record rec (
     1 dcp_forms_activity_id     = f8
     1 adv_dir_form_name         = vc
     1 version_dt_tm             = vc
-    1 amb_ad_form_ref_id        = f8
-    1 amb_ad_form_name          = vc
-    1 inpat_ad_form_ref_id      = f8
-    1 inpat_ad_form_name        = vc
+    1 ad_form_ref_id            = f8
+    1 ad_form_name              = vc
+    ;008 This is going to hold the old form logic.
     1 adv_dir_cnt               = i2
     1 adv_dir_list [*]
         2 form_element          = vc
         2 event_tag             = vc
+        2 event_id              = f8  ;006 mainly debugging... working on the new grid
+        2 event_cd              = f8  ;008 mainly debugging...
+    ;008-> New form stuff 
+    1 new_ad_molst_form_ind     = i2
+    1 new_ad_molst_form_list
+        2 new_ad_molst_data_ind = i2
+        2 ad_sect_cnt           = i4
+        2 ad_sect[*]
+            3 form_element      = vc
+            3 event_tag         = vc
+            3 event_id          = f8  
+            3 event_cd          = f8  
+        
+        2 molst_sect_cnt        = i4
+        2 molst_sect[*]
+            3 form_element      = vc
+            3 event_tag         = vc
+            3 event_id          = f8  
+            3 event_cd          = f8
+        
+        2 decision1_cnt         = i4
+        2 decision1[*]
+            3 form_element      = vc
+            3 event_tag         = vc
+            3 event_id          = f8  
+            3 event_cd          = f8
+        
+        2 decision2_cnt         = i4
+        2 decision2[*]
+            3 form_element      = vc
+            3 event_tag         = vc
+            3 event_id          = f8  
+            3 event_cd          = f8
+        
+        2 final_cnt             = i4
+        2 final[*]
+            3 form_element      = vc
+            3 event_tag         = vc
+            3 event_id          = f8  
+            3 event_cd          = f8
+    ;008<-
     1 doc_cnt                   = i2
     1 doc_list [*]
         2 event_set             = vc
@@ -115,34 +159,59 @@ record rec (
 /**************************************************************
 ; DVDev DECLARED VARIABLES
 **************************************************************/
-declare mrn_cd        = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',    319, 'MRN'                 ))
-declare fin_cd        = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',    319, 'FINNBR'              ))
-declare ern_cd        = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',    263, 'EADENROLLEENUMBER'   ))
+declare mrn_cd           = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',    319, 'MRN'                 ))
+declare fin_cd           = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',    319, 'FINNBR'              ))
+declare ern_cd           = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',    263, 'EADENROLLEENUMBER'   ))
+                         
+declare pri_evnt_id      = f8  with protect,   constant(uar_get_code_by('DISPLAY_KEY', 18189, 'PRIMARYEVENTID'      ))
+declare root_cd          = f8  with protect,   constant(uar_get_code_by(    'MEANING',    24, 'ROOT'                ))
+declare child_cd         = f8  with protect,   constant(uar_get_code_by(    'MEANING',    24, 'CHILD'               ))
+                         
+declare act_cd           = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'ACTIVE'              ))
+declare auth_cd          = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'AUTH'                ))
+declare alt_cd           = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'ALTERED'             ))
+declare mod_cd           = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'MODIFIED'            ))
+                         
+declare err_cd           = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'INERROR'             ))
+                         
+                         
+declare ad_event_cd      = f8  with protect, noconstant(uar_get_code_by('DISPLAYKEY',     72, 'ADVANCEDIRECTIVES'   ))
 
-declare pri_evnt_id   = f8  with protect,   constant(uar_get_code_by('DISPLAY_KEY', 18189, 'PRIMARYEVENTID'      ))
-declare root_cd       = f8  with protect,   constant(uar_get_code_by(    'MEANING',    24, 'ROOT'                ))
-declare child_cd      = f8  with protect,   constant(uar_get_code_by(    'MEANING',    24, 'CHILD'               ))
+;Prod hot fix
+if(ad_event_cd = -1)
+    set ad_event_cd      = 704644.00
+endif
+                         
+declare ad_form_cd       = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',     72, 'ADVANCEDIRECTIVEFORM'))
+declare ad_form_grid_cd  = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',     72, 'ADVANCEDIRECTIVELOCGRID'))
+declare ad_loc_grid_ind  = i2  with protect, noconstant(0)
 
-declare act_cd        = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'ACTIVE'              ))
-declare auth_cd       = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'AUTH'                ))
-declare alt_cd        = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'ALTERED'             ))
-declare mod_cd        = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'MODIFIED'            ))
+declare old_loc_form_element = vc  with protect, noconstant('')
+declare old_loc_event_tag    = vc  with protect, noconstant('') 
+declare old_loc_event_id     = f8  with protect, noconstant(0)
+declare old_loc_event_cd     = f8  with protect, noconstant(0)
 
-declare err_cd        = f8  with protect,   constant(uar_get_code_by(   'MEANING',      8, 'INERROR'             ))
+declare trig_event_id    = f8  with protect, noconstant(0.0)
+declare form_event_id    = f8  with protect, noconstant(0.0)  ;006
+declare trig_event_dt_tm = f8  with protect, noconstant(0.0)  ;006
+declare form_event_dt_tm = f8  with protect, noconstant(0.0)  ;006
+
+declare trig_form = vc
+declare form_form = vc
 
 
-declare ad_event_cd   = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',     72, 'ADVANCEDIRECTIVES'   ))
 
-declare ad_event_id   = f8  with protect, noconstant(0.0)
+declare md_outcome_cd    = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',     72, 'MDMOLSTREVIEWOUTCOME'))
+declare dc_outcome_cd    = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',     72, 'DCMOSTREVIEWOUTCOME' ))
+declare grp_cd           = f8  with protect, noconstant(uar_get_code_by(   'MEANING',     53, 'GRP'                 ))
+                         
+declare reply_txt        = vc  with protect, noconstant('')
+                         
+declare pos              = i4  with protect, noconstant(0)
+declare idx              = i4  with protect, noconstant(0)
 
-declare md_outcome_cd = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',     72, 'MDMOLSTREVIEWOUTCOME'))
-declare dc_outcome_cd = f8  with protect,   constant(uar_get_code_by('DISPLAYKEY',     72, 'DCMOSTREVIEWOUTCOME' ))
-declare grp_cd        = f8  with protect, noconstant(uar_get_code_by(   'MEANING',     53, 'GRP'                 ))
-
-declare reply_txt     = vc  with protect, noconstant('')
-
-declare pos           = i4  with protect, noconstant(0)
-declare idx           = i4  with protect, noconstant(0)
+declare temp_ad_loc      = vc  with protect, noconstant('')  ;008
+declare temp_molst_loc   = vc  with protect, noconstant('')  ;008
 
 
 /**************************************************************
@@ -156,18 +225,15 @@ select into 'nl:'
    and dfr.end_effective_dt_tm >= cnvtdatetime(curdate, curtime3)
    and dfr.description in('MD Medical Orders for Life-Sustaining Treatment (MOLST)'
                          ,'DC Medical Orders for Scope of Treatment (MOST)'
-                         , 'Advance Directive'
-                         , 'Advance Directives')
+                         , 'Advance Directive/ MO(L)ST')
 detail
     case(dfr.description)
-    of 'Advance Directive' : rec->inpat_ad_form_ref_id = dfr.dcp_forms_ref_id
-                             rec->inpat_ad_form_name   = dfr.description
-    of 'Advance Directives': rec->amb_ad_form_ref_id   = dfr.dcp_forms_ref_id
-                             rec->amb_ad_form_name     = dfr.description
-    of '*(MOLST)'          : rec->md_form_ref_id       = dfr.dcp_forms_ref_id
-                             rec->md_form_name         = dfr.description
-    of '*(MOST)'           : rec->dc_form_ref_id       = dfr.dcp_forms_ref_id
-                             rec->dc_form_name         = dfr.description
+    of 'Advance Directive/ MO(L)ST' : rec->ad_form_ref_id = dfr.dcp_forms_ref_id
+                                      rec->ad_form_name   = dfr.description
+    of '*(MOLST)'                   : rec->md_form_ref_id       = dfr.dcp_forms_ref_id
+                                      rec->md_form_name         = dfr.description
+    of '*(MOST)'                    : rec->dc_form_ref_id       = dfr.dcp_forms_ref_id
+                                      rec->dc_form_name         = dfr.description
     endcase
 with nocounter
 
@@ -206,95 +272,437 @@ select into 'nl:'
    and ce.event_reltn_cd        =  child_cd
    and ce.valid_until_dt_tm     =  cnvtdatetime('31-DEC-2100 00:00:00.000')
    and ce.result_status_cd      in (act_cd,auth_cd,alt_cd,mod_cd)
-order by event_end_dt_tm desc
+order by ce.event_end_dt_tm desc
 head report
-    ad_event_id = ce.event_id
+    trig_event_id    = ce.event_id
+    trig_event_dt_tm = ce.event_end_dt_tm  ;006 We need this because the other form doesn't have a trigger question.
+    trig_form        = uar_get_code_display(ce.event_cd)
+    
 with nocounter
 
 
-; get Advanced Directives form content from ad doc, and most recent information on that form.
 select into 'nl:'
-      d2.dcp_forms_ref_id
-    , d2.dcp_forms_activity_id
-    , ce.encntr_id
-    , ce.person_id
-    , form_element    = uar_get_code_display(ce3.event_cd)
-    , ce3.event_cd
-    , ce3.event_tag
-    , event_end_dt_tm = format(ce3.event_end_dt_tm,'MM/DD/YYYY HH:MM;;')
-  from  clinical_event          ce  ;triggering ce
-      , clinical_event          ce2 ;form
-      , clinical_event          ce3 ;form children
-      , clinical_event          ce4 ;form parent  I don't think we actually need this join however.  Added this for information.
-      , dcp_forms_activity_comp df
-      , dcp_forms_activity      d   ;the activity where our event dropped.
-      , dcp_forms_activity      d2  ;the most recent activity on the form.
-  plan ce ;triggering ce
-   where ce.event_id              =  ad_event_id
-  join ce2 ;form
-   where ce2.event_id             =  ce.parent_event_id
+  from clinical_event event
+     , clinical_event sect
+     , clinical_event form
+ 
+ where event.event_id              =  trig_event_id
+   and event.valid_until_dt_tm     =  cnvtdatetime('31-DEC-2100 00:00:00.000')
+   and event.result_status_cd      in (act_cd,auth_cd,alt_cd,mod_cd)
+   
+   and sect.event_id              =  event.parent_event_id
+   and sect.valid_until_dt_tm     =  cnvtdatetime('31-DEC-2100 00:00:00.000')
+   and sect.result_status_cd      in (act_cd,auth_cd,alt_cd,mod_cd)
+   
+   and form.event_id              =  sect.parent_event_id
+   and form.valid_until_dt_tm     =  cnvtdatetime('31-DEC-2100 00:00:00.000')
+   and form.result_status_cd      in (act_cd,auth_cd,alt_cd,mod_cd)
+detail
+    trig_event_id = form.event_id 
+with nocounter
+
+
+;006->
+;Now we got to see if we have a more recent version of the new form.
+select into 'nl:'
+  from clinical_event ce
+ where ce.person_id             =  cnvtreal($personid)
+   and ce.event_cd              =  ad_form_cd
+   and ce.event_reltn_cd        =  root_cd
+   and ce.valid_until_dt_tm     =  cnvtdatetime('31-DEC-2100 00:00:00.000')
+   and ce.result_status_cd      in (act_cd,auth_cd,alt_cd,mod_cd)
+order by ce.event_end_dt_tm desc
+head report
+    form_event_id    = ce.event_id
+    form_event_dt_tm = ce.event_end_dt_tm  ;006 We need this because the other form doesn't have a trigger question.
+    form_form        = uar_get_code_display(ce.event_cd)
+with nocounter
+;006<-
+
+call echo(build('trig_form       :', trig_form                      ))
+call echo(build('trig_event_id   :', trig_event_id                  ))
+call echo(build('trig_event_dt_tm:', format(trig_event_dt_tm, ';;q')))
+call echo(build('form_form       :', form_form                      ))
+call echo(build('form_event_id   :', form_event_id                  ))
+call echo(build('form_event_dt_tm:', format(form_event_dt_tm, ';;q')))
+
+
+declare find_this_form = f8
+
+if(trig_event_dt_tm > form_event_dt_tm)
+    set find_this_form = trig_event_id
+else
+    set find_this_form = form_event_id
+endif
+
+; get Advanced Directives form content from ad doc, and most recent information on that form.
+
+;008->Heavy mods here... just doing it all
+select into 'nl:'
+       ;Build
+       ;SORT = if    (ce3.event_cd = 4562131147.0) 1    ; AD Documents
+       ;       elseif(ce3.event_cd = 704644.0    ) 1    ; AD Documents again?
+       ;       elseif(ce3.event_cd = 4562131125.0) 2    ; Pat declines
+       ;       elseif(ce3.event_cd = 704647.0    ) 3    ; AD Type
+       ;       elseif(ce3.event_cd = 704662.0    ) 4    ; AD Date
+       ;       
+       ;       elseif(ce3.event_cd = 2188783197.0) 4    ; MOLST Date
+       ;                                              
+       ;       elseif(ce3.event_cd = 4562131247.0) 21   ; Decision1 Maker
+       ;       elseif(ce3.event_cd = 4562131267.0) 22   ; Decision1 Type
+       ;       elseif(ce3.event_cd = 4562131257.0) 23   ; Decision1 Phone
+       ;                                              
+       ;       elseif(ce3.event_cd = 4562131277.0) 31   ; Decision2 Maker
+       ;       elseif(ce3.event_cd = 4562131297.0) 32   ; Decision2 Type
+       ;       elseif(ce3.event_cd = 4562131287.0) 33   ; Decision2 Phone
+       ;       
+       ;       elseif(ce3.event_cd = 4562131307.0) 41   ; Validation decision
+       ;       elseif(ce3.event_cd = 823733389.0 ) 42   ; Comments
+       ;       elseif(ce3.event_cd = 704656.0    ) 43   ; Further info
+       ;       
+       ;       ;I think we luck out on the locations and they can just be at the end of their respective sections.
+       ;       elseif(ce4.event_cd = 4562131347.0) 51   ; Scanned EMR
+       ;       elseif(ce4.event_cd = 4562131429.0) 52   ; Paper Copy
+       ;       elseif(ce4.event_cd = 4562131397.0) 53   ; CRISP
+       ;       elseif(ce4.event_cd = 4562131407.0) 54   ; Copy Prev Records
+       ;       
+       ;       else                              100
+       ;       endif
+       ;Prod
+       SORT = if    (ce3.event_cd = 5473905453.0) 1    ; AD Documents
+              elseif(ce3.event_cd = 704644.0    ) 1    ; AD Documents again?
+              elseif(ce3.event_cd = 5473924419.0) 2    ; Pat declines
+              elseif(ce3.event_cd = 704647.0    ) 3    ; AD Type
+              elseif(ce3.event_cd = 704662.0    ) 4    ; AD Date
+              
+              elseif(ce3.event_cd = 2188783197.0) 4    ; MOLST Date
+                                                     
+              elseif(ce3.event_cd = 5473924845.0) 21   ; Decision1 Maker
+              elseif(ce3.event_cd = 5473925103.0) 22   ; Decision1 Type
+              elseif(ce3.event_cd = 5473905567.0) 23   ; Decision1 Phone
+                                                     
+              elseif(ce3.event_cd = 5473925397.0) 31   ; Decision2 Maker
+              elseif(ce3.event_cd = 5473926121.0) 32   ; Decision2 Type
+              elseif(ce3.event_cd = 5473925587.0) 33   ; Decision2 Phone
+              
+              elseif(ce3.event_cd = 5473927121.0) 41   ; Validation decision
+              elseif(ce3.event_cd = 823733389.0 ) 42   ; Comments
+              elseif(ce3.event_cd = 704656.0    ) 43   ; Further info
+              
+              ;I think we luck out on the locations and they can just be at the end of their respective sections.
+              elseif(ce4.event_cd = 5473931779.0) 51   ; Scanned EMR
+              elseif(ce4.event_cd = 5473932615.0) 52   ; Paper Copy
+              elseif(ce4.event_cd = 5473928159.0) 53   ; CRISP
+              elseif(ce4.event_cd = 5473932561.0) 54   ; Copy Prev Records
+              
+              else                              100
+              endif
+     , trim(uar_get_code_display(ce3.event_cd), 3)
+     , trim(ce3.event_tag)
+     , ce3.event_id
+     , ce3.event_cd
+     , trim(uar_get_code_display(ce4.event_cd), 3)
+     , trim(ce4.event_tag)
+     , ce4.event_id
+     , ce4.event_cd
+              
+  from clinical_event          ce  ;triggering ce
+     , clinical_event          ce2 ;form
+     , clinical_event          ce3 ;form children
+     , clinical_event          ce4 ;data grid if present.
+     , dcp_forms_activity_comp df
+     , dcp_forms_activity      d   ;the activity where our event dropped.
+     , dcp_forms_activity      d2  ;the most recent activity on the form.
+  
+  plan ce ;form
+   ;where ce.event_id              =  form_event_id
+   where ce.event_id              =  find_this_form
+     and ce.valid_until_dt_tm     =  cnvtdatetime('31-DEC-2100 00:00:00.000')
+     and ce.result_status_cd      in (act_cd,auth_cd,alt_cd,mod_cd)
+  
+  join ce2 ;section
+   where ce2.parent_event_id      =  ce.event_id
+     and ce2.event_title_text     in ('*Advance*', '*MOLST*', '*MO(L)ST*')
      and ce2.valid_until_dt_tm    =  cnvtdatetime('31-DEC-2100 00:00:00.000')
      and ce2.event_reltn_cd       =  child_cd
      and ce2.result_status_cd     in (act_cd,auth_cd,alt_cd,mod_cd)
-  join ce3 ;form children
+  
+  join ce3 ;dtas
    where ce3.parent_event_id      =  ce2.event_id
      and ce3.valid_until_dt_tm    =  cnvtdatetime('31-DEC-2100 00:00:00.000')
      and ce3.event_reltn_cd       =  child_cd
+     and ce3.event_cd             != 677460393.00  ;Advance Directive RTF  ;Not sure if this actually holds any info
      and ce3.result_status_cd     in (act_cd,auth_cd,alt_cd,mod_cd)
-  join ce4 ;form parent
-   where ce4.event_id             =  ce2.parent_event_id
-     and ce4.valid_until_dt_tm    =  cnvtdatetime('31-DEC-2100 00:00:00.000')
-     and ce4.event_reltn_cd       =  root_cd
-     and ce4.result_status_cd     in (act_cd,auth_cd,alt_cd,mod_cd)
+  
+  join ce4 ;dtas
+   where ce4.parent_event_id      =  outerjoin(ce3.event_id)
+     and ce4.valid_until_dt_tm    =  outerjoin(cnvtdatetime('31-DEC-2100 00:00:00.000'))
+     and ce4.event_reltn_cd       =  outerjoin(child_cd)
+     and ce4.event_cd             != outerjoin(677460393.00)  ;Advance Directive RTF  ;Not sure if this actually holds any info
+     and (   ce4.result_status_cd =  outerjoin(act_cd)
+          or ce4.result_status_cd =  outerjoin(auth_cd)
+          or ce4.result_status_cd =  outerjoin(alt_cd)
+          or ce4.result_status_cd =  outerjoin(mod_cd)
+         )
+  
   join df
-   where df.parent_entity_id      =  ce4.event_id
+   where df.parent_entity_id      =  ce.event_id
      and df.parent_entity_name    =  'CLINICAL_EVENT'
      and df.component_cd          =  pri_evnt_id
+  
   join d  ;our ce activity
    where d.dcp_forms_activity_id  =  df.dcp_forms_activity_id
+  
   join d2 ;most recent activity on the same type of form
-   where d2.dcp_forms_ref_id      =  d.dcp_forms_ref_id
-     and d2.person_id             =  d.person_id;006
+   where d2.dcp_forms_ref_id      = d.dcp_forms_ref_id
+     and d2.person_id             =  d.person_id  ;008
      and d2.version_dt_tm    = (
            select max(dx.version_dt_tm)
              from dcp_forms_activity dx
             where dx.person_id        = d.person_id
               and dx.dcp_forms_ref_id = d.dcp_forms_ref_id
           )
-order by d.person_id
-       , ce3.event_cd
-       , ce3.event_end_dt_tm
-       , ce3.collating_seq
+
+order by SORT, ce2.event_id, ce3.event_cd, ce3.event_end_dt_tm desc
 
 head d.person_id
-    stat = alterlist(rec->adv_dir_list, 50)
-
-    rec->adv_dir_cnt                         = 0
-
     rec->dcp_forms_ref_id      = d2.dcp_forms_ref_id
     rec->dcp_forms_activity_id = d2.dcp_forms_activity_id
     rec->adv_dir_form_name     = d2.description
     rec->version_dt_tm         = trim(format(d2.version_dt_tm,'MM/DD/YYYY HH:MM;;'), 3)
+    
 
-head ce3.event_cd
-    rec->adv_dir_cnt = rec->adv_dir_cnt + 1
-
-    if(mod(rec->adv_dir_cnt,50) = 1 and rec->adv_dir_cnt > 50)
-        stat = alterlist(rec->adv_dir_list, rec->adv_dir_cnt + 49)
+head ce2.event_id
+    
+    if(findstring('MO(L)ST', ce2.event_title_text) > 0)
+        rec->new_ad_molst_form_ind = 1
     endif
 
-foot ce3.event_cd
-    rec->adv_dir_list[rec->adv_dir_cnt].form_element          = trim(uar_get_code_display(ce3.event_cd), 3)
-    rec->adv_dir_list[rec->adv_dir_cnt].event_tag             = trim(ce3.event_tag)
 
-foot d.person_id
-    stat = alterlist(rec->adv_dir_list, rec->adv_dir_cnt)
+
+head ce3.event_cd
+    ;if(ce3.event_cd != ad_form_grid_cd)
+    if(ce3.event_cd != 704650)
+        
+        case(ce3.event_cd)
+        ;Build
+        ;of 4562131147.0:  ; AD Documents
+        ;of 704644.0    :  ; AD Documents
+        ;Prod
+        of 5473905453.0:  ; AD Documents
+        of 704644.0    :  ; AD Documents
+            
+            pos = rec->new_ad_molst_form_list->ad_sect_cnt + 1
+            
+            rec->new_ad_molst_form_list->ad_sect_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->ad_sect, pos)
+            
+            rec->new_ad_molst_form_list->ad_sect[pos].form_element = "Healthcare Decision Making Documents"
+            rec->new_ad_molst_form_list->ad_sect[pos].event_tag    = trim(ce3.event_tag)
+            rec->new_ad_molst_form_list->ad_sect[pos].event_id     = ce3.event_id
+            rec->new_ad_molst_form_list->ad_sect[pos].event_cd     = ce3.event_cd
+        
+        ;Build
+        ;of 4562131125.0:  ; AD Type
+        ;of 704647.0    :  ; AD Type
+        ;of 704662.0    :  ; AD Date
+        ;Prod
+        of 5473924419.0:  ; AD Type
+        of 704647.0    :  ; AD Type
+        of 704662.0    :  ; AD Date
+            
+            pos = rec->new_ad_molst_form_list->ad_sect_cnt + 1
+            
+            rec->new_ad_molst_form_list->ad_sect_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->ad_sect, pos)
+            
+            rec->new_ad_molst_form_list->ad_sect[pos].form_element = trim(uar_get_code_display(ce3.event_cd), 3)
+            rec->new_ad_molst_form_list->ad_sect[pos].event_tag    = trim(ce3.event_tag)
+            rec->new_ad_molst_form_list->ad_sect[pos].event_id     = ce3.event_id
+            rec->new_ad_molst_form_list->ad_sect[pos].event_cd     = ce3.event_cd
+        
+        of 2188783197.0:  ; MOLST Date
+            
+            pos = rec->new_ad_molst_form_list->molst_sect_cnt + 1
+            
+            rec->new_ad_molst_form_list->molst_sect_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->molst_sect, pos)
+            
+            rec->new_ad_molst_form_list->molst_sect[pos].form_element = trim(uar_get_code_display(ce3.event_cd), 3)
+            rec->new_ad_molst_form_list->molst_sect[pos].event_tag    = trim(ce3.event_tag)
+            rec->new_ad_molst_form_list->molst_sect[pos].event_id     = ce3.event_id
+            rec->new_ad_molst_form_list->molst_sect[pos].event_cd     = ce3.event_cd
+        
+        
+        ;Build
+        ;of 4562131247.0:  ; Decision1 Maker
+        ;of 4562131267.0:  ; Decision1 Type
+        ;of 4562131257.0:  ; Decision1 Phone
+        ;Prod
+        of 5473924845.0:  ; Decision1 Maker
+        of 5473925103.0:  ; Decision1 Type
+        of 5473905567.0:  ; Decision1 Phone
+            
+            pos = rec->new_ad_molst_form_list->decision1_cnt + 1
+            
+            rec->new_ad_molst_form_list->decision1_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->decision1, pos)
+            
+            rec->new_ad_molst_form_list->decision1[pos].form_element = trim(uar_get_code_display(ce3.event_cd), 3)
+            rec->new_ad_molst_form_list->decision1[pos].event_tag    = trim(ce3.event_tag)
+            rec->new_ad_molst_form_list->decision1[pos].event_id     = ce3.event_id
+            rec->new_ad_molst_form_list->decision1[pos].event_cd     = ce3.event_cd
+        
+        ;Build
+        ;of 4562131277.0:  ; Decision2 Maker
+        ;of 4562131297.0:  ; Decision2 Type
+        ;of 4562131287.0:  ; Decision2 Phone
+        ;Prod
+        of 5473925397.0:  ; Decision2 Maker
+        of 5473926121.0:  ; Decision2 Type
+        of 5473925587.0:  ; Decision2 Phone
+            
+            pos = rec->new_ad_molst_form_list->decision2_cnt + 1
+            
+            rec->new_ad_molst_form_list->decision2_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->decision2, pos)
+            
+            rec->new_ad_molst_form_list->decision2[pos].form_element = trim(uar_get_code_display(ce3.event_cd), 3)
+            rec->new_ad_molst_form_list->decision2[pos].event_tag    = trim(ce3.event_tag)
+            rec->new_ad_molst_form_list->decision2[pos].event_id     = ce3.event_id
+            rec->new_ad_molst_form_list->decision2[pos].event_cd     = ce3.event_cd
+        
+        ;Build
+        ;of 4562131307.0:  ; Validation decision
+        ;of 823733389.0 :  ; Comments
+        ;of 704656.0    :  ; Further info
+        ;Prod
+        of 5473927121.0:  ; Validation decision
+        of 823733389.0 :  ; Comments
+        of 704656.0    :  ; Further info
+            
+            pos = rec->new_ad_molst_form_list->final_cnt + 1
+            
+            rec->new_ad_molst_form_list->final_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->final, pos)
+            
+            rec->new_ad_molst_form_list->final[pos].form_element = trim(uar_get_code_display(ce3.event_cd), 3)
+            rec->new_ad_molst_form_list->final[pos].event_tag    = trim(ce3.event_tag)
+            rec->new_ad_molst_form_list->final[pos].event_id     = ce3.event_id
+            rec->new_ad_molst_form_list->final[pos].event_cd     = ce3.event_cd
+        
+        else
+            if(ce3.parent_event_id = ce2.event_id)
+                pos = rec->new_ad_molst_form_list->ad_sect_cnt + 1
+                
+                rec->new_ad_molst_form_list->ad_sect_cnt = pos
+
+                stat = alterlist(rec->new_ad_molst_form_list->ad_sect, pos)
+                
+                rec->new_ad_molst_form_list->ad_sect[pos].form_element = trim(uar_get_code_display(ce3.event_cd), 3)
+                rec->new_ad_molst_form_list->ad_sect[pos].event_tag    = trim(ce3.event_tag)
+                rec->new_ad_molst_form_list->ad_sect[pos].event_id     = ce3.event_id
+                rec->new_ad_molst_form_list->ad_sect[pos].event_cd     = ce3.event_cd
+            endif
+        
+        endcase
+    else
+        old_loc_form_element = trim(uar_get_code_display(ce3.event_cd), 3)
+        old_loc_event_tag    = trim(ce3.event_tag)
+        old_loc_event_id     = ce3.event_id
+        old_loc_event_cd     = ce3.event_cd
+    endif
+
+head ce4.event_cd
+    
+    ;if(ce3.event_cd = ad_form_grid_cd)
+    if(ce3.event_cd = 704650.00 and ce4.event_id > 0)
+        ad_loc_grid_ind = 1
+    
+        
+        ;This is in a pivot table sort of thing... we need to undo that to get what they want in the ST.
+        if(findstring('Advance Directive', ce4.result_val) > 0)
+            if(temp_ad_loc = '') temp_ad_loc = trim(uar_get_code_display(ce4.event_cd), 3)
+            else                 temp_ad_loc = notrim(build2( temp_ad_loc, '; '
+                                                            , trim(uar_get_code_display(ce4.event_cd), 3)))
+            endif
+        endif
+        
+        if(findstring('MO(L)ST', ce4.result_val) > 0)
+            if(temp_molst_loc = '') temp_molst_loc = trim(uar_get_code_display(ce4.event_cd), 3)
+            else                    temp_molst_loc = notrim(build2( temp_molst_loc, '; '
+                                                                  , trim(uar_get_code_display(ce4.event_cd), 3)))
+            endif
+            
+        endif
+        
+        
+        
+    endif
+
+foot report
+    
+    if(temp_ad_loc > ' ')
+                
+            pos = rec->new_ad_molst_form_list->ad_sect_cnt + 1
+            
+            rec->new_ad_molst_form_list->ad_sect_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->ad_sect, pos)
+            
+            rec->new_ad_molst_form_list->ad_sect[pos].form_element = 'Advance Directive Location'
+            rec->new_ad_molst_form_list->ad_sect[pos].event_tag    = temp_ad_loc
+        
+    endif
+    
+    
+    if(temp_molst_loc > ' ')
+                
+            pos = rec->new_ad_molst_form_list->molst_sect_cnt + 1
+            
+            rec->new_ad_molst_form_list->molst_sect_cnt = pos
+
+            stat = alterlist(rec->new_ad_molst_form_list->molst_sect, pos)
+            
+            rec->new_ad_molst_form_list->molst_sect[pos].form_element = 'MO(L)ST Location'
+            rec->new_ad_molst_form_list->molst_sect[pos].event_tag    = temp_molst_loc
+        
+    endif
+    
+    if(ad_loc_grid_ind = 0 and old_loc_form_element > ' ')
+        pos = rec->new_ad_molst_form_list->ad_sect_cnt + 1
+        
+        rec->new_ad_molst_form_list->ad_sect_cnt = pos
+
+        stat = alterlist(rec->new_ad_molst_form_list->ad_sect, pos)
+        
+        rec->new_ad_molst_form_list->ad_sect[pos].form_element = 'Advance Directive Location'
+        rec->new_ad_molst_form_list->ad_sect[pos].event_tag    = old_loc_event_tag
+    endif
+    
 
 with nocounter
    , separator = ' '
    , format
    , time      = 30
 
+if(   rec->new_ad_molst_form_list->ad_sect_cnt    > 0
+   or rec->new_ad_molst_form_list->molst_sect_cnt > 0
+   or rec->new_ad_molst_form_list->decision1_cnt  > 0
+   or rec->new_ad_molst_form_list->decision2_cnt  > 0
+   or rec->new_ad_molst_form_list->final_cnt      > 0
+  )
+    set rec->new_ad_molst_form_list->new_ad_molst_data_ind = 1
+endif
+
+
+;008<-
 
 ; Advanced Planning Documents
 set stat         = alterlist(rec->doc_list, 10)
