@@ -20,6 +20,7 @@
 Mod Date       Analyst              MCGA   Comment
 --- ---------- -------------------- ------ -----------------------------------------------
 001 01/10/2024 Michael Mayes        241435 Initial release (SCTASK0063439)
+002 05/07/2024 Michael Mayes        347444 Moving the DX check inside the cust script.  (This ended up reverted during validation)
 *************END OF ALL MODCONTROL BLOCKS* ***********************************************/
 drop   program 0_eks_sz_bone_health_ords:dba go
 create program 0_eks_sz_bone_health_ords:dba
@@ -62,7 +63,6 @@ DESCRIPTION:  Check for Bone Health Referral in the last year
 select into 'nl:'
   from order_catalog       oc
      , orders              o
-     , encounter           e 
  where oc.description          = 'Referral to MedStar Bone Health and Fracture Prevention Program'
    and oc.active_ind           =  1
    
@@ -77,6 +77,8 @@ detail
     ; for code clarity.
     
     order_ind = 1
+    call echo(build('ENC:', o.encntr_id))
+    call echo(build('ORD:', o.order_id))
 with nocounter
 
 
@@ -114,30 +116,32 @@ detail
 with nocounter
 
 
+;002-> reworking the logging, because it made no sense.
 ;Defaulting success at this point.
 set retval      = 100  
-set log_message = "Patient had neither order nor order set qualify"
-set log_misc1   = "Non-Qualify"
+set log_misc1   = "Pass"
+set log_message = notrim("Checks: ")
 
 
 if(order_ind = 1)
     set retval      = 0  ; Failed due to order
-    set log_message = "Patient had order qualify"
-    set log_misc1   = "Qualify"
+    set log_message = notrim(build2(log_message, "O:F"))
+    set log_misc1   = "Fail"
+else
+    set log_message = notrim(build2(log_message, "O:S"))
 endif
 
 
 if(order_set_ind = 1)
     set retval      = 0  ; Failed due to order
-    set log_message = "Patient had order set qualify"
-    set log_misc1   = "Qualify"
+    set log_message = notrim(build2(log_message, "; OS:F"))
+    set log_misc1   = "Fail"
+else
+    set log_message = notrim(build2(log_message, "; OS:S"))
 endif
 
+;002<-
 
-;Just because I'm a completionist
-if(order_ind = 1 and order_set_ind = 1)
-    set log_message = "Patient had both order and order set qualify"
-endif
 
 
 
