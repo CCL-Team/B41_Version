@@ -94,7 +94,7 @@ declare incis_area_cd   = f8  with protect,   constant(uar_get_code_by('DESCRIPT
                                               
 declare cdl_inact_cd    = f8  with protect,   constant(uar_get_code_by(    'MEANING', 4002015, 'INACTIVE'                         ))
 
-declare lookback        = dq8 with protect,   constant(datetimefind(cnvtdatetime(curdate, curtime3), "D", "S", "S"))
+declare lookback        = dq8 with protect,   constant(datetimefind(cnvtdatetime(curdate, curtime3), "D", "B", "B"))
 
 declare looper          = i4  with protect, noconstant(0)
 
@@ -129,7 +129,7 @@ select into 'nl:'
   from clinical_event   ce
      , ce_dynamic_label cdl
 
- where ce.encntr_id            =  e_id
+ where ce.person_id            =  p_id
    and ce.result_status_cd     in (act_cd, mod_cd, auth_cd, alt_cd)
    and ce.valid_until_dt_tm    >  cnvtdatetime(curdate, curtime3)
    and ce.event_cd             in (wc_loc_cd, wc_lat_cd, wc_desc_cd)
