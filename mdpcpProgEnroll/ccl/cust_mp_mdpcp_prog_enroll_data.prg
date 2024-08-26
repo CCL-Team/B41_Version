@@ -20,6 +20,7 @@
 Mod Date       Analyst              MCGA   Comment
 --- ---------- -------------------- ------ -----------------------------
 001 07/19/2023 Michael Mayes        238981 Initial release 
+002 07/12/2024 Michael Mayes        348442 Remove MDPCP soc needs ref, No enroll message, remove cto if other referrals.
 *************END OF ALL MODCONTROL BLOCKS* ********************************/
 drop   program cust_mp_mdpcp_prog_enroll_data:dba go
 create program cust_mp_mdpcp_prog_enroll_data:dba
@@ -50,6 +51,8 @@ record rec (
     1 enc_fac            = vc
     1 care_first_ind     = i2
     1 cto_ind            = i2
+    1 aetna_ind          = i2
+    1 cigna_ind          = i2
     1 mdpcp_ind          = i2
     1 fc_ind             = i2
     1 care_mgmt_cnt      = i4
@@ -308,6 +311,7 @@ else
     set rec->empanel_status     = hi_get_hi_demographics_reply->status_data->status
     set rec->empanel_status_msg = hi_get_hi_demographics_reply->status_data->subeventstatus[1]->targetobjectvalue
 endif
+                   
 
 
 ;Trying for the Attributed Provider now:
@@ -389,13 +393,13 @@ set rec->attrib_status     = '1'
 ;                
 ;                for(looper2 = 1 to size(attrib->prov[looper]->aliases, 5))
 ;                    if(attrib->prov[looper]->aliases[looper2]->alias_type = 'USER')
-;                        set pos                                              = rec->attrib_prov[rec->attrib_prov_cnt]->user_cnt  + 1
+;                        set pos                                           = rec->attrib_prov[rec->attrib_prov_cnt]->user_cnt  + 1
 ;                        set rec->attrib_prov[rec->attrib_prov_cnt]->user_cnt = pos
 ;                
 ;                        set stat = alterlist(rec->attrib_prov[rec->attrib_prov_cnt]->users, pos)
 ;                        
 ;                        set rec->attrib_prov[rec->attrib_prov_cnt]->users[pos]->alias = 
-;                                                                                    attrib->prov[looper]->aliases[looper2]->alias_id
+;                                                                                 attrib->prov[looper]->aliases[looper2]->alias_id
 ;                        
 ;                    endif
 ;                endfor
@@ -517,27 +521,42 @@ head ce.person_id
 with nocounter
 
 
+;002-> Big reworks here
 ;We are going to loop the empanelments to try and find our plans that drive conditional referrals.
 for(looper = 1 to rec->empanel_cnt)
-    if(   cnvtupper(rec->empanel[looper]->name ) = 'CAREFIRST*'
-       or cnvtupper(rec->empanel[looper]->value) = 'CAREFIRST*'
-      )
-        set rec->care_first_ind = 1
+    if    (cnvtupper(rec->empanel[looper]->name ) = 'CAREFIRST*')           set rec->care_first_ind = 1
+    elseif(cnvtupper(rec->empanel[looper]->value) = 'CAREFIRST*')           set rec->care_first_ind = 1
     
-    elseif(   cnvtupper(rec->empanel[looper]->name ) = 'MEDSTAR*SELECT*'
-           or cnvtupper(rec->empanel[looper]->value) = 'MEDSTAR*SELECT*'
-           or cnvtupper(rec->empanel[looper]->value) = 'AETNA*'
-           or cnvtupper(rec->empanel[looper]->name ) = 'CIGNA*'
-           or cnvtupper(rec->empanel[looper]->value) = 'CIGNA*'
-          )
-        set rec->cto_ind = 1
-    elseif(   cnvtupper(rec->empanel[looper]->name ) = 'MFC*'
-           or cnvtupper(rec->empanel[looper]->value) = 'MEDSTARFAMILYCHOICE*')
-        set rec->fc_ind = 1
+    elseif(cnvtupper(rec->empanel[looper]->name ) = 'MEDSTAR*SELECT*')      set rec->cto_ind        = 1
+    elseif(cnvtupper(rec->empanel[looper]->value) = 'MEDSTAR*SELECT*')      set rec->cto_ind        = 1
+    
+    elseif(cnvtupper(rec->empanel[looper]->value) = 'AETNA*')               set rec->aetna_ind      = 1
+    
+    elseif(cnvtupper(rec->empanel[looper]->name ) = 'CIGNA*')               set rec->cigna_ind      = 1
+    elseif(cnvtupper(rec->empanel[looper]->value) = 'CIGNA*')               set rec->cigna_ind      = 1
+    
+    elseif(cnvtupper(rec->empanel[looper]->name ) = 'MFC*')                 set rec->fc_ind         = 1
+    elseif(cnvtupper(rec->empanel[looper]->value) = 'MEDSTARFAMILYCHOICE*') set rec->fc_ind         = 1
     endif
     
 endfor
+;002<-
 
+
+;002-> This is a bit weird.  They want me to remove CTO if there is a different referral in place already.
+;      Not sure I understand, but I guess I trust them?
+if(rec->cto_ind = 1)
+    if(   rec->mdpcp_ind      = 1
+       or rec->care_first_ind = 1
+       or rec->fc_ind         = 1
+       or rec->aetna_ind      = 1
+       or rec->cigna_ind      = 1
+      )
+        set rec->cto_ind = 0
+    endif
+
+endif
+;002<-
 
 
 /**********************************************************************
@@ -551,9 +570,10 @@ select into 'nl:'
                           , 'Referral to MedStar CareFirst Behavioral Health Care Manager'
                           
                           , 'Referral to CTO Care Coordination'
+                          , 'Referral to MedStar Cigna Care Coordinator/Case Manager'
+                          , 'Referral to MedStar Aetna Care Coordinator/Case Manager'
                              
                           , 'Referral to MedStar MDPCP Care Coordinator/Case Manager'
-                          , 'Referral to MedStar MDPCP Social Needs Team'
                           
                           , 'Referral to MedStar Family Choice Care Coordinator/Case Manager'
                           
@@ -591,9 +611,26 @@ detail
             rec->care_mgmt[rec->care_mgmt_cnt]->synonym_id   = ocs.synonym_id
         endif
         
+    of 'Referral to MedStar Aetna Care Coordinator/Case Manager':
+        if(rec->aetna_ind = 1)
+            rec->care_mgmt_cnt = rec->care_mgmt_cnt + 1
+            stat = alterlist(rec->care_mgmt, rec->care_mgmt_cnt)
+            
+            rec->care_mgmt[rec->care_mgmt_cnt]->synonym_disp = trim(ocs.mnemonic, 3)
+            rec->care_mgmt[rec->care_mgmt_cnt]->synonym_id   = ocs.synonym_id
+        endif
+        
+    of 'Referral to MedStar Cigna Care Coordinator/Case Manager':
+        if(rec->cigna_ind = 1)
+            rec->care_mgmt_cnt = rec->care_mgmt_cnt + 1
+            stat = alterlist(rec->care_mgmt, rec->care_mgmt_cnt)
+            
+            rec->care_mgmt[rec->care_mgmt_cnt]->synonym_disp = trim(ocs.mnemonic, 3)
+            rec->care_mgmt[rec->care_mgmt_cnt]->synonym_id   = ocs.synonym_id
+        endif
+        
     
     of 'Referral to MedStar MDPCP Care Coordinator/Case Manager':
-    of 'Referral to MedStar MDPCP Social Needs Team'            :
         if(rec->mdpcp_ind = 1)
             rec->care_mgmt_cnt = rec->care_mgmt_cnt + 1
             stat = alterlist(rec->care_mgmt, rec->care_mgmt_cnt)

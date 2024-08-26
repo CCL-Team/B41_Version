@@ -3,17 +3,20 @@
 */
 
 var cmmpeEllipse = 0;
-var cmmpeInterval;
+var cmmpeInterval = 0;
 
 //Component bootstrap.
 $(document).ready(function(){
     
-    $(".cmmpe_parent").append( '<h5>' + 'Loading HealtheIntent Data' 
-                                      + '<span class="cmmpeEllipse"><span>' 
-                             + '</h5>'
-                             );
+    //Looks like we double get doc ready... trying to protect us
+    if(cmmpeInterval === 0){
+        $(".cmmpe_parent").append( '<h5>' + 'Loading HealtheIntent Data' 
+                                          + '<span class="cmmpeEllipse"><span>' 
+                                 + '</h5>'
+                                 );
                              
-    cmmpeInterval = setInterval(cmmpeEllipseWait, 700);
+        cmmpeInterval = setInterval(cmmpeEllipseWait, 700);
+    }
     
     cmmpeInit();
 });
@@ -111,22 +114,35 @@ function cmmpeEmpanelDiv(json){
     
     
     if(json.EMPANEL_STATUS === 'S'){
-        for(var i = 0; i < json.EMPANEL_CNT; i++){
+        if(json.EMPANEL_CNT === 0 && json.MDPCP_IND === 0 && json.ATTRIB_PROV_CNT === 0){
             empDiv = document.createElement('div');
             
-            $(empDiv).addClass('cmmpeEmpanelDiv');
-            
             empLine = document.createElement('div');
-            if     (json.EMPANEL[i].VALUE.length > 0) $(empLine).text('Empanelment Membership: ' + json.EMPANEL[i].VALUE  );
-            else if(json.EMPANEL[i].NAME.length  > 0) $(empLine).text('Empanelment Membership: ' + json.EMPANEL[i].NAME  );
             
+            $(empLine).text("Patient is not currently enrolled in a managed care group.");
+            
+            $(empLine).addClass('cmmpeError');
             $(empDiv).append(empLine);
-            
-            empLine = document.createElement('div');
-            $(empLine).text('Date of Empanelment: '    + json.EMPANEL[i].BEG_DT);
-            $(empDiv).append(empLine);
-            
             divList.push(empDiv);
+        }else{
+            
+            for(var i = 0; i < json.EMPANEL_CNT; i++){
+                empDiv = document.createElement('div');
+                
+                $(empDiv).addClass('cmmpeEmpanelDiv');
+                
+                empLine = document.createElement('div');
+                if     (json.EMPANEL[i].VALUE.length > 0) $(empLine).text('Empanelment Membership: ' + json.EMPANEL[i].VALUE  );
+                else if(json.EMPANEL[i].NAME.length  > 0) $(empLine).text('Empanelment Membership: ' + json.EMPANEL[i].NAME  );
+                
+                $(empDiv).append(empLine);
+                
+                empLine = document.createElement('div');
+                $(empLine).text('Date of Empanelment: '    + json.EMPANEL[i].BEG_DT);
+                $(empDiv).append(empLine);
+                
+                divList.push(empDiv);
+            }
         }
     }else{
         empDiv = document.createElement('div');

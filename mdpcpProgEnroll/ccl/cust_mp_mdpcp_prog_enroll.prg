@@ -64,24 +64,24 @@ set html_ret = build2(^<div class="cmmpe_parent"></div>^)
 ;This is a placeholder image stolen from crisp.  It brings in our JS and CSS after the fact when our component loads.
 ;It doesn't seem to use the server which makes sense I suppose.  Bedrock settings probably still do.
 ;You'll have to be very careful that any CSS/JS doesn't conflict with other components.
-set html_ret = build2(html_ret, ^<img src='I:\\mPages\\common\\img\\blank.png' width='0px' height='0px' ^,
+;;set html_ret = build2(html_ret, ^<img src='I:\\mPages\\common\\img\\blank.png' width='0px' height='0px' ^,
 ;TODO this needs to move to the server... but I got tired of waiting on cycling.
-;;set html_ret = build2(html_ret, ^test<img src='../custom_mpage_content/mpage_reference_files/common/img/blank.png' width='0px' height='0px' ^,
+set html_ret = build2(html_ret, ^<img src='../custom_mpage_content/mpage_reference_files/common/img/blank.png' width='0px' height='0px' ^,
                                              ;JS
                                      ^onLoad='var compJS = document.createElement("script");^,
 	                                         ^compJS.setAttribute("type","text/javascript");^,
 	                                         ^compJS.setAttribute("src",^,
-                                                      ^"I:\\mPages\\mdpcpProgEnroll\\js\\cust_mp_mdpcp_prog_enroll.js");^,
+                                             ;        ^"I:\\mPages\\mdpcpProgEnroll\\js\\cust_mp_mdpcp_prog_enroll.js");^,
                                              ;TODO this needs to move to the server... but I got tired of waiting on cycling.
-                                             ;^"../custom_mpage_content/mpage_reference_files/mdpcpProgEnroll/js/cust_mp_mdpcp_prog_enroll.js");^,
+                                             ^"../custom_mpage_content/mpage_reference_files/mdpcpProgEnroll/js/cust_mp_mdpcp_prog_enroll.js");^,
 		                                     ^document.getElementsByTagName("head")[0].appendChild(compJS);^,
                                              ;CSS
                                              ^var compCSS = document.createElement("link");^,
 	                                         ^compCSS.setAttribute("rel","stylesheet");^,
 	                                         ^compCSS.setAttribute("href",^,
-                                                      ^"I:\\mPages\\mdpcpProgEnroll\\css\\cust_mp_mdpcp_prog_enroll.css");^,
+                                             ;         ^"I:\\mPages\\mdpcpProgEnroll\\css\\cust_mp_mdpcp_prog_enroll.css");^,
                                               ;TODO this needs to move to the server... but I got tired of waiting on cycling.
-                                             ; ^"../custom_mpage_content/mpage_reference_files/mdpcpProgEnroll/css/cust_mp_mdpcp_prog_enroll.css");^,
+                                              ^"../custom_mpage_content/mpage_reference_files/mdpcpProgEnroll/css/cust_mp_mdpcp_prog_enroll.css");^,
 		                                     ^document.getElementsByTagName("head")[0].appendChild(compCSS);^,
 	                                        ^'^,
                                 ^>^)
