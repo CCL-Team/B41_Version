@@ -25,9 +25,10 @@ Mod Date       Analyst       SOM/MCGA Comment
 --- ---------- ------------- ------   --------------------------------------------
 N/A 08/15/2022 Jeremy Daniel N/A      Initial Release
 001 10/12/2023 Michael Mayes 240631   (SCTASK0053833) Changes to allow build Teams integration
-002 11/21/2023 Michael Mayes 240025   (SCTASK0059284)  Changes to send up no data message
-003 11/21/2023 Michael Mayes 240025   (SCTASK0058496)  Changes to not exclude patients without a FIN on the encounter.
+002 11/21/2023 Michael Mayes 240025   (SCTASK0059284) Changes to send up no data message
+003 11/21/2023 Michael Mayes 240025   (SCTASK0058496) Changes to not exclude patients without a FIN on the encounter.
 004 07/09/2024 Michael Mayes 239760   (SCTASK0093996) Adding columns for their working sessions to the file.
+005 08/27/2024 Michael Mayes 239760   (SCTASK0114735) Some columns were not populated - Adding a new blank column for them
 --------------------------------
 *************END OF ALL MODCONTROL BLOCKS* ***************************************************************************************/
 ;Copy and paste the following into DiscernVisualDeveloper and save:     
@@ -253,6 +254,11 @@ STAT=ALTERLIST(RS->QUAL,PATIENTS)
     rs->QUAL[patients]->encntr_type = UAR_GET_CODE_DISPLAY(E.ENCNTR_TYPE_CLASS_CD)
     rs->QUAL[patients]->loc = o.org_name
     
+    rs->QUAL[patients]->fin         = ea.alias           ;005
+    rs->QUAL[patients]->reg_date    = e.reg_dt_tm        ;005
+    rs->QUAL[patients]->disch_date  = e.disch_dt_tm      ;005
+    rs->QUAL[patients]->result_date = c.event_end_dt_tm  ;005
+    
 with nocounter, time = 200
 ;****************************************************************************************
 ; OUTPUT
@@ -263,13 +269,13 @@ If($Type = 2)
  
  SELECT INTO VALUE(FILE_NAME)
 
-      NAME           = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].Name))
-    , FIN            = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].FIN))
+      NAME           = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].Name         ))
+    , FIN            = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].FIN           ))
     , RESULT_DATE    = format(rs->QUAL[d1.seq].RESULT_DATE, "@SHORTDATETIME")
-    , REG_DATE       = format(rs->QUAL[d1.seq].REG_DATE, "@SHORTDATETIME")
-    , DISCH_DATE     = format(rs->QUAL[d1.seq].DISCH_DATE, "MM/DD/YYYY;;q")
-    , ENCNTR_TYPE    = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].ENCNTR_TYPE))
-    , LOC            = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].LOC))
+    , REG_DATE       = format(rs->QUAL[d1.seq].REG_DATE, "@SHORTDATETIME"   )
+    , DISCH_DATE     = format(rs->QUAL[d1.seq].DISCH_DATE, "MM/DD/YYYY;;q"  )
+    , ENCNTR_TYPE    = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].ENCNTR_TYPE   ))
+    , LOC            = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].LOC          ))
     
     FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
  
@@ -297,13 +303,13 @@ elseif($type = 1)
  
     select into $outdev
     
-      NAME           = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].Name))
-    , FIN            = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].FIN))
+      NAME           = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].Name         ))
+    , FIN            = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].FIN           ))
     , RESULT_DATE    = format(rs->QUAL[d1.seq].RESULT_DATE, "@SHORTDATETIME")
-    , REG_DATE       = format(rs->QUAL[d1.seq].REG_DATE, "@SHORTDATETIME")
-    , DISCH_DATE     = format(rs->QUAL[d1.seq].DISCH_DATE, "MM/DD/YYYY;;q")
-    , ENCNTR_TYPE    = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].ENCNTR_TYPE))
-    , LOC            = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].LOC))
+    , REG_DATE       = format(rs->QUAL[d1.seq].REG_DATE, "@SHORTDATETIME"   )
+    , DISCH_DATE     = format(rs->QUAL[d1.seq].DISCH_DATE, "MM/DD/YYYY;;q"  )
+    , ENCNTR_TYPE    = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].ENCNTR_TYPE   ))
+    , LOC            = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].LOC          ))
     
     
     FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
@@ -344,17 +350,18 @@ elseif($type = 3)
         call echo(build('FILENAME:', FILENAME))
         
         select into value(FILENAME)
-               NAME           = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].Name))
-             , FIN            = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].FIN))
-             , RESULT_DATE    = format(rs->QUAL[d1.seq].RESULT_DATE, "@SHORTDATETIME")
-             , REG_DATE       = format(rs->QUAL[d1.seq].REG_DATE, "@SHORTDATETIME")
-             , DISCH_DATE     = format(rs->QUAL[d1.seq].DISCH_DATE, "MM/DD/YYYY;;q")
-             , ENCNTR_TYPE    = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].ENCNTR_TYPE))
-             , LOC            = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].LOC))
-             , PERSON_ID      = RS->QUAL[d1.seq].PersonId  ;004
-             , ENCNTR_ID      = RS->QUAL[d1.seq].EncntrId  ;004
-             , Document_ID    = ''                         ;004
-             , RR_NOTES       = ''                         ;004
+               NAME             = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].Name         ))
+             , FIN              = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].FIN           ))
+             , RESULT_DATE      = format(rs->QUAL[d1.seq].RESULT_DATE, "@SHORTDATETIME")
+             , REG_DATE         = format(rs->QUAL[d1.seq].REG_DATE, "@SHORTDATETIME"   )
+             , DISCH_DATE       = format(rs->QUAL[d1.seq].DISCH_DATE, "MM/DD/YYYY;;q"  )
+             , ENCNTR_TYPE      = trim(SUBSTRING(1, 30, rs->QUAL[D1.SEQ].ENCNTR_TYPE   ))
+             , LOC              = trim(SUBSTRING(1, 130, rs->QUAL[D1.SEQ].LOC          ))
+             , PERSON_ID        = RS->QUAL[d1.seq].PersonId  ;004
+             , ENCNTR_ID        = RS->QUAL[d1.seq].EncntrId  ;004
+             , Document_ID      = ''                         ;004
+             , RR_NOTES         = ''                         ;004
+             , ORGANISM_DISEASE = ''                         ;005
     
         FROM (DUMMYT D1 WITH SEQ = SIZE(RS->QUAL,5))
      
