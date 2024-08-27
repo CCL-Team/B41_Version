@@ -21,7 +21,8 @@
 Mod Date       Analyst              MCGA     Comment
 --- ---------- -------------------- -------- -----------------------------
 001 04/27/2023 Michael Mayes        236959   (SCTASK0010959) Initial release
-002 01/30/2024 Michael Mayes        344980   (SCTASK0067089) Initial release
+002 01/30/2024 Michael Mayes        344980   Doing work to include some Transcribed labs
+003 08/13/2024 Michael Mayes        348479   Adding BMI to the measurements under the lab tables.
 *************END OF ALL MODCONTROL BLOCKS* *******************************/
   drop program 14_st_doac_overview_labs:dba go
 create program 14_st_doac_overview_labs:dba 
@@ -129,6 +130,11 @@ record results(
     1 dosing_weight_unit      = vc
     1 dosing_weight_dt_tm     = dq8
     1 dosing_weight_dt_tm_txt = vc
+    
+    1 bmi                     = vc   ;003
+    1 bmi_unit                = vc   ;003
+    1 bmi_dt_tm               = dq8  ;003
+    1 bmi_dt_tm_txt           = vc   ;003
         
 )
  
@@ -185,6 +191,7 @@ declare ast1_cd         = f8  with protect, constant(uar_get_code_by('DISPLAYKEY
 declare ast2_cd         = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'ASTSGOTTRANSCRIBED'             ))
 
 declare dose_weight_cd  = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'WEIGHTDOSING'                   ))
+declare bmi_cd          = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'BODYMASSINDEXDOSING'            ))  ;003
 
 
 ;declare looper       = i4  with protect
@@ -216,6 +223,7 @@ call echo(build('alt2_cd        :', alt2_cd        ))
 call echo(build('ast1_cd        :', ast1_cd        ))
 call echo(build('ast2_cd        :', ast2_cd        ))
 call echo(build('dose_weight_cd :', dose_weight_cd ))
+call echo(build('bmi_cd         :', bmi_cd         ))  ;003
 
 
 
@@ -235,10 +243,11 @@ select into 'nl:'
                                , creat1_cd      , creat2_cd      , creat3_cd  ;002
                                , creat_clear1_cd, creat_clear2_cd
                                , creat_clear3_cd, creat_clear4_cd, creat_clear5_cd
-                               , bili1_cd       , bili2_cd       , bili3_cd  ;002
+                               , bili1_cd       , bili2_cd       , bili3_cd   ;002
                                , alt1_cd        , alt2_cd            
                                , ast1_cd        , ast2_cd        
                                , dose_weight_cd
+                               , bmi_cd                                       ;003
                                )
 order by ce.event_end_dt_tm desc
 detail
@@ -389,6 +398,17 @@ detail
 
         endif
         
+    ;003->
+    of bmi_cd:
+        if(results->bmi = '')
+            results->bmi              = trim(ce.result_val, 3)
+            results->bmi_unit         = uar_get_code_display(ce.result_units_cd)
+            results->bmi_dt_tm        = ce.event_end_dt_tm
+            results->bmi_dt_tm_txt    = format(ce.event_end_dt_tm, "mm/dd/yyyy hh:mm")
+
+        endif
+    ;003<-
+    
     endcase
 
 with nocounter
@@ -517,14 +537,33 @@ if(results->dosing_weight != '')
                                , results->dosing_weight          , ' '
                                , results->dosing_weight_unit     , ' ('
                                , results->dosing_weight_dt_tm_txt, ')'
+                               , reol  ;003
                                )
                         )
 else
     set tmp_str = notrim(build2( tmp_str
                                , 'Dosing Weight: No result found.'
+                               , reol  ;003
                                )
                         )
 endif
+
+;003->
+if(results->bmi != '')
+    set tmp_str = notrim(build2( tmp_str
+                               , 'BMI: '
+                               , results->bmi          , ' '
+                               , results->bmi_unit     , ' ('
+                               , results->bmi_dt_tm_txt, ')'
+                               )
+                        )
+else
+    set tmp_str = notrim(build2( tmp_str
+                               , 'BMI: No result found.'
+                               )
+                        )
+endif
+;003<-
 
 
 call include_line(build2(header, tmp_str, RTFEOF))
