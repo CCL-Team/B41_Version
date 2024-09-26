@@ -1,0 +1,22 @@
+Hey just a note... 
+
+This is not a complete fileset.  They are just the files I changed.
+
+Also, I didn't take a good initial, it sort of trickled in as I made more adjustments.  If we need me to pull it out I can.
+
+
+
+My repo log before I rebased it (I did myself no favors with the commit messages):
+
+*  (HEAD -> SimeonPage)     69a1471 - MichaelMMayes - (7 days ago) Actually some changes for the IE version.
+*                           3c35d8b - MichaelMMayes - (8 days ago) Inflight
+*                           25a864c - MichaelMMayes - (9 days ago) More inflight
+*                           176fe60 - MichaelMMayes - (10 days ago) Inflight
+*                           7da3082 - MichaelMMayes - (10 days ago) Inflight
+*                           34a18cc - MichaelMMayes - (10 days ago) More performance adjustments... I think I'm going to have to hit frontend to and batch these calls...
+*                           7b49434 - MichaelMMayes - (13 days ago) Inflight
+*                           f0fd813 - MichaelMMayes - (2 weeks ago) inflight
+*                           5f6fd4d - MichaelMMayes - (2 weeks ago) initial script
+*                           3398371 - MichaelMMayes - (2 weeks ago) Inflight
+*                           e47961d - MichaelMMayes - (2 weeks ago) Some changes that seemed a bit happier for some reason...
+*                           7bb8c91 - MichaelMMayes - (2 weeks ago) Initial
