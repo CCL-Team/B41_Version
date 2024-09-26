@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http - equiv="Expires" content="-1">
+    <meta http-equiv="Content-Type" content="XMLCCLREQUEST, APPLINK, MPAGES_EVENT, MPAGES_SVC_EVENT, CCLLINK, CCLLINKPOPUP, CCLNEWWINDOW, CCLNEWSESSIONWINDOW, CCLEVENT, CCLEKSREPLYOBJECT" name="discern" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- CSS -->
+    <link href="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\css\\bootstrap.css" rel="stylesheet" />
+    <link href="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\css\\green.css" rel="stylesheet">
+    <link href="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\css\\dt11021\\datatables.min.css" rel="stylesheet" />
+    <link href="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\fontawesome-free-5.7.2-web\\css\\all.css" rel="stylesheet" />
+    <link href="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\css\\green.css" rel="stylesheet">
+    <link href="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\css\\custom.css" rel="stylesheet" />
+    <style>
+        body {
+            color: black;
+        }
+
+        .divider-dashed {
+            border-top: 1px dashed #e7eaec;
+            background-color: #ffffff;
+            height: 1px;
+            margin: 10px 0;
+        }
+
+        .btn-orange {
+            color: black;
+            background-color: orange;
+        }
+
+        .btn-blue {
+            color: white;
+            background-color: blue;
+        }
+
+        .btn-purple {
+            color: white;
+            background-color: purple;
+        }
+
+        .btn-maroon {
+            color: white;
+            background-color: maroon;
+        }
+
+        .btn-pink {
+            color: black;
+            background-color: pink;
+        }
+
+        .indicatorLabel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .preferrencePointer {
+            animation: bounce 0.75s ease infinite alternate;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+<body class="main_container" id="mainBodyContent">
+    <!-- page content -->
+    <div>
+        <div class="right_col" role="main">
+            <div class="">
+                <div class="">
+                    <div class="col-md-4 ">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>COVID-19 Vaccine History</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <br />
+                                <div class="col-sm-12">
+                                    <div>
+                                        <div class="col-md-12 col-sm-12">
+                                            <h2>
+                                                <b>Vaccine Count: </b>
+                                            </h2>
+                                        </div>
+                                        <div id="vax_count_display">
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="col-md-12 col-sm-12">
+                                                    <h2>
+                                                        <b>Pre 24/25 Formula</b>
+                                                    </h2>
+                                                </div>
+                                                <div class="col-md-12 col-sm-12">
+                                                    <h2>
+                                                        Pfizer: <label id="pfizerPre2324CountLbl"></label>
+                                                    </h2>
+                                                </div>
+                                                <div class="left col-md-12 col-sm-12">
+                                                    <h2>
+                                                        Moderna: <label id="modernaPre2324CountLbl"></label>
+                                                    </h2>
+                                                </div>
+                                            </div>
+                                            <div class="left col-md-6 col-sm-6" style="border-left: 3px solid #e8e8e8;">
+                                                <div class="col-md-12 col-sm-12">
+                                                    <h2>
+                                                        <b>24/25 Formula</b>
+                                                    </h2>
+                                                </div>
+                                                <div class="col-md-12 col-sm-12">
+                                                    <h2>
+                                                        Pfizer: <label id="pfizer2324CountLbl"></label>
+                                                    </h2>
+                                                </div>
+                                                <div class="left col-md-12 col-sm-12">
+                                                    <h2>
+                                                        Moderna: <label id="moderna2324CountLbl">0</label>
+                                                    </h2>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="vaccineHistoryDiv"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>COVID-19 Vaccine Order Advisor </h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <br />
+                                <form class="form-horizontal form-label-left" style="font-size: 20px;">
+                                    <div id="novaxhistoryLabel" class="form-group row bg-warning hidden">
+                                        <h2>
+                                            <label class="warning col-md-12 col-sm-12 ">There are no documented COVID vaccines for this patient, confirm that the patient does not have uncharted vaccines.</label>
+                                        </h2>
+                                    </div>
+                                    <div id="confirmVaxhx" class="form-group row">
+                                        <label class="col-md-6 col-sm-6  control-label"> Is the patient's vaccine history up to date? </label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat" value="yes" name="vaxHxConfirmCheck"> Yes
+                                                </label>
+                                            </div>
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat" value="no" name="vaxHxConfirmCheck"> No
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- if no vaccination record found in MedConnect then vaccine history confirmation below -->
+                                    <!-- End Vaccine history Confirmation-->
+                                    
+                                    <!-- if BiValent and 2 vaccines already then display selector below -->
+                                    <!-- Immunocompromise selector -->
+                                    <div id="immunoCompromiseDiv" class="form-group row hidden">
+                                        <label class="col-md-6 col-sm-6  control-label"> Is the patient considered immunocompromised? </label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat" value="yes" name="immunoCompCheck"> Yes
+                                                </label>
+                                            </div>
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat" value="no" name="immunoCompCheck"> No
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="stopOverrideDiv" class="form-group row hidden">
+                                        <label class="col-md-6 col-sm-6  control-label">Override this stop condition ?*</label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="col-md-6 col-sm-6">
+                                                <button type="button" id="btnOverride" class="btn btn-primary btnOverride">Click here to Override the Stop </button>
+                                            </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                <button type="button" class="btn btn-primary btnCancelOverride hidden">Cancel Override</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="consultProvider" class="form-group row hidden">
+                                        <label class="col-md-6 col-sm-6  control-label">Who is approving this override?*</label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="input-group">
+                                                <span class="input-group-btn">
+                                                    <button type="button" id="consultPrsnlSearch" class="btn btn-primary go-class">Search </button>
+                                                </span>
+                                                <div>
+                                                    <input type="text" class="form-control has-feedback-left" id="consultPrsnl" placeholder="Click search to enter consult provider name" disabled>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Vaccine Timeframe selector -->
+                                    <!-- if radio button above is Bivalent then display time frame type selector below -->
+                                </form>
+                                <form id="questionaire" class="form-horizontal form-label-left hidden" style="font-size: 20px;">
+                                    <!-- Questionaire -->
+                                    <div id="allergicReaction" class="form-group row hidden">
+                                        <label class="col-md-6 col-sm-6  control-label"> Has the patient ever had an allergic reaction to any ingredient in the COVID vaccine including polyethylene glycol (PEG) or a prior COVID vaccine? </label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="yes" name="qAllergicReactionCheck"> Yes
+                                                </label>
+                                            </div>
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="no" name="qAllergicReactionCheck"> No
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="divider-dashed"></div>
+                                    <div id="anaphylaxis" class="form-group row hidden">
+                                        <label class="col-md-6 col-sm-6  control-label"> Has the patient had anaphylaxis to something other than a component of COVID-19 vaccine that required treatment with epinephrine injection or prescription EpiPen? This includes food, pets, bee sting, latex, or medications taken. </label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="yesno" name="qAnaphylaxisCheck"> Yes, patient does not want to be vaccinated due to allergy risk
+                                                </label>
+                                            </div>
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="yes" name="qAnaphylaxisCheck"> Yes, patient reviewed the documentation regarding risk of allergic reaction/anaphylaxis and wants to continue with vaccination today
+                                                </label>
+                                            </div>
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="no" name="qAnaphylaxisCheck"> No
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="divider-dashed"></div>
+                                    <div id="feverQuestion" class="form-group row hidden">
+                                        <label class="col-md-6 col-sm-6  control-label"> Does the patient have a fever of 100.4 degrees F or greater (38 degrees C)? </label>
+                                        <div class="divider-dashed"></div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="yes" name="qFeverCheck"> Yes
+                                                </label>
+                                            </div>
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="no" name="qFeverCheck"> No
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="divider-dashed"></div>
+                                    <div id="factSheetQuestion" class="form-group row hidden">
+                                        <label class="col-md-6 col-sm-6  control-label"> Fact sheet given to patient and patient had opportunity to ask questions? </label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="yes" name="qFactSheetCheck"> Yes
+                                                </label>
+                                            </div>
+                                            <div class="radio col-md-6 col-sm-6">
+                                                <label>
+                                                    <input type="radio" class="flat questionaireRadio" value="no" name="qFactSheetCheck"> No
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="divider-dashed"></div>
+                                    <div id="vaxToAdminister" class="form-group row hidden">
+                                        <label class="control-label" style="text-align:right;"> Are you going to administer Pfizer or Moderna today? </label>
+                                        <br />
+                                        <br />
+                                        <div class="col-md-12 col-sm-12">
+                                            <div class="col-md-4 col-sm-4">
+                                                <div class="preferrencePointer indicatorLabel" style="color:green" id="preferrencePointerDiv">
+                                                    <i class="fas fa-syringe"> Preferred</i>
+                                                </div>
+                                                <button type="button" id="firstVaxBtn" style="font-size: 20px;" class="btn btn-success btn-block orderSubmitBtn">Submit Order1</button>
+                                            </div>
+                                            <div class="col-md-4 col-sm-4">
+                                                <div class="indicatorLabel" style="color:red" id="alternativeDiv">
+                                                    <i class="fas fa-syringe"> Alternative</i>
+                                                </div>
+                                                <button type="button" id="secondVaxBtn" style="font-size:20px" class="btn btn-success btn-block orderSubmitBtn">Submit Order2</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                                <form>
+                                    <div id="stopDocVax" class="form-group row hidden" style="text-align:center;">
+                                        <h1>
+                                            <span style="color:red" class="badge badge-danger">STOP</span>Please navigate to the Immunization Schedule to document missing patient vaccine(s) before continuing. Once vaccine history has been updated, please refresh this page.
+                                        </h1>
+                                        <button type="button" id="immSchedule" class="btn btn-primary go-class">Go To Immunization Schedule </button>
+                                    </div>
+                                    <div id="stopMessage" class="form-group row hidden">
+                                        <h1 id="stopMessageText">
+                                            <span class="badge badge-danger">STOP</span>Patient does not qualify for vaccine at this time
+                                        </h1>
+                                    </div>
+                                    <h2>
+                                        <i class="fa-solid fa-do-not-enter"></i>
+                                    </h2>
+                                    <!-- End Vaccine Timeframe selector -->
+                                    <!-- History of Bivalent Vaccine -->
+                                    <div class="ln_solid"></div>
+                                    <div class="form-group">
+                                        <div class="col-md-9 col-sm-9  hidden offset-md-3">
+                                            <button type="submit" class="btn btn-success">Submit</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="consultProviderModal" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="mpAssingModalTitle"></h2>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 col-sm-12 col-xs-12">
+                                <div class="x_panel">
+                                    <div class="x_content">
+                                        <form class="form-label-left input_mask">
+                                            <div class="col-md-11 col-sm-11">
+                                                <div class="col-md-6 col-sm-6  form-group has-feedback">
+                                                    <input type="text" class="form-control has-feedback-left" id="consultPrsnlSearchFName" placeholder="Enter Provider First Name">
+                                                    <span class="fa fa-user form-control-feedback left" aria-hidden="true"></span>
+                                                </div>
+                                                <div class="col-md-6 col-sm-6  form-group has-feedback">
+                                                    <input type="text" class="form-control" id="consultPrsnlSearchLName" placeholder="Enter Provider Last Name">
+                                                    <span class="fa fa-user form-control-feedback right" aria-hidden="true"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 col-sm-1">
+                                                <button type="button" id="srcBtn" class="btn btn-primary go-class">Go!</button>
+                                            </div>
+                                            <div class="col-md-12 col-sm-12 form-group">
+                                                <div id="divConsultProviderSearchTable"></div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- footer content -->
+        <footer style="margin-left: 0px">
+            <div class="pull-right">
+                <label id="runTimeinfo"></label> Powered by <a>MedStar Cerner</a>
+            </div>
+            <div class="clearfix"></div>
+        </footer>
+        <!-- /footer content -->
+    </div>
+    <div id="accessDenied" style="display: none" class="col-md-12">
+        <div class="col-middle">
+            <div class="text-center text-center">
+                <h1 class="error-number">403</h1>
+                <h2>Access denied</h2>
+                <p>
+                    Full authentication is required to access this resource. <a href="mailto:MedConnect-CustomDevelopmentTeam@medstar.nets">Report this</a>
+                </p>
+                <div class="mid_center">
+                    <h3>Search</h3>
+                    <form>
+                        <div class="col-xs-12 form-group pull-right top_search">
+                            <!--<div class="input-group"><input type="text" class="form-control" placeholder="Search for..."><span class="input-group-btn"><button class="btn btn-default" type="button">Go!</button></span></div>-->
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JS -->
+    <script src="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\js\\jquery.js"></script>
+    <script src="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\js\\bootstrap.js"></script>
+    <script src="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\js\\icheck.js"></script>
+    <script src="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\js\\select2.min.js"></script>
+    <script src="I:\\mPages\\AMB_MPage_Files\\BootstrapFilesETC\\js\\jquery.dataTables.js"></script>
+    <script src="I:\\mPages\\AMB_MPage_Files\\common\\blackbird.js"></script>
+    <script src="I:\\mPages\\AMB_MPage_Files\\common\\lib.js"></script>
+    <script src="I:\\mpages\\AMB_MPage_Files\\dba_debug\\js\\4_mp_tableWidget_json2.js"></script>
+    <script src="I:\\mPages\\AMB_MPage_Files\\covid_vax_advisor\\js\\14_mp_covid_vax_advisor_org.js"></script>
+</body>
+</html>

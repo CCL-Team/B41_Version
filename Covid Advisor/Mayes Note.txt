@@ -1,0 +1,28 @@
+Hey just a note... 
+
+This is not a complete fileset.  They are just the files I changed.
+
+Also, I didn't take a good initial, it sort of trickled in as I made more adjustments.  If we need me to pull it out I can.
+
+
+
+My repo log before I rebased it (I did myself no favors with the commit messages):
+
+
+| | *  (HEAD -> covidAdvisor)   b9cf8df - MichaelMMayes - (9 days ago) More inflight
+| | *                           ad9671f - MichaelMMayes - (10 days ago) Initial JS
+| | *                           8808bdb - MichaelMMayes - (10 days ago) Forgot to undo the dates
+| | *                           b99ae22 - MichaelMMayes - (10 days ago) Moving changes over
+| | *                           b7070a2 - MichaelMMayes - (10 days ago) Prod move initial
+| | *                           8950358 - MichaelMMayes - (13 days ago) More logic changes
+| | *                           71b9700 - MichaelMMayes - (2 weeks ago) Build float changes in prg
+| | *                           1082491 - MichaelMMayes - (2 weeks ago) Okay rule changes for real this time
+| | *                           313d711 - MichaelMMayes - (2 weeks ago) This is the initial for the real rule
+| | *                           1480933 - MichaelMMayes - (2 weeks ago) Reverting the rule change, it was the wrong rule
+| | *                           2dfc041 - MichaelMMayes - (2 weeks ago) Date changes for Amy
+| | *                           498c718 - MichaelMMayes - (2 weeks ago) Rule order changes to 2024-2025
+| | *                           175e781 - MichaelMMayes - (2 weeks ago) Initial rule
+| | *                           b0686dd - MichaelMMayes - (2 weeks ago) Changes to some logic
+| | *                           d47b61a - MichaelMMayes - (2 weeks ago) Label change
+| | *                           5dd8d13 - MichaelMMayes - (2 weeks ago) Initial HTML
+| | *                           54b30c1 - MichaelMMayes - (2 weeks ago) Vaccines Counts change
