@@ -57,7 +57,7 @@ mcph_redraw = function(){
         
         label      = $('<p><span class="mcph_title">Handoff Notes</span><span class="mcph_subtitle">(255 char limit)</span>')
         //Regex goofiness brought to you by the fact that the rule seems to parser fail if it sees an @ in the text.
-        textbox    = $('<textarea/>').addClass('mcph_text_input').text(handoffTxt.replace(/&#x40;/g, '@')).attr({
+        textbox    = $('<textarea/>').addClass('mcph_text_input').val(handoffTxt.replace(/&#x40;/g, '@')).attr({
             'rows': '5',
             'maxlength': 255
         });
@@ -67,14 +67,17 @@ mcph_redraw = function(){
         if(docDate !== '') $(docLabel).text('Last Documented: ' + docDate);
         
         $(button).click(function(){
-            var parseReply, opts;
+            var parseReply, opts, textArea;
+            
+            textArea = $(this).prev('.mcph_text_input');
             
             //Replace goofiness brought to you by the fact that the rule seems to parser fail if it sees an @ in the text.
-            opts = "^MINE^, value($VIS_EncntrId$), ^" + eventCd + "^, ^" + $('.mcph_text_input').text().replace('@','&#x40;') + "^";
+            opts = "^MINE^, value($VIS_EncntrId$), ^" + eventCd + "^, ^" + $(textArea).val().replace('@','&#x40;') + "^";
             
             parseReply = function(json){
                 mcph_redraw();
             }
+            console.log('medstar_mp_add_sticky_note ' + opts);
             mPageCCLCall('medstar_mp_add_sticky_note', parseReply)(opts);
         });
         
@@ -84,6 +87,7 @@ mcph_redraw = function(){
         $('.mcph_parent').append(button);
         $('.mcph_parent').append(docLabel);
     }
+    console.log('mp_cust_get_patient_handoff ' + opts);
     mPageCCLCall('mp_cust_get_patient_handoff', parseReply)(opts);
 }
 

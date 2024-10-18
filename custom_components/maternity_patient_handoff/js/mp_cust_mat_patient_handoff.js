@@ -61,7 +61,7 @@ mmatph_redraw = function(){
         docDate    = json.COMP_DATA.HANDOFF_DT;
         
         label      = $('<p><span class="mmatph_title">Handoff Notes</span><span class="mmatph_subtitle">(255 char limit)</span>')
-        textbox    = $('<textarea/>').addClass('mmatph_text_input').text(handoffTxt).attr({
+        textbox    = $('<textarea/>').addClass('mmatph_text_input').val(handoffTxt).attr({
             'rows': '5',
             'maxlength': 255
         });
@@ -71,13 +71,16 @@ mmatph_redraw = function(){
         if(docDate !== '') $(docLabel).text('Last Documented: ' + docDate);
         
         $(button).click(function(){
-            var parseReply, opts;
+            var parseReply, opts, textArea;
             
-            opts = "^MINE^, value($VIS_EncntrId$), ^" + eventCd + "^, ^" + $('.mmatph_text_input').text() + "^";
+            textArea = $(this).prev('.mmatph_text_input');
+            
+            opts = "^MINE^, value($VIS_EncntrId$), ^" + eventCd + "^, ^" + $(textArea).val() + "^";
             
             parseReply = function(json){
                 mmatph_redraw();
             }
+            console.log('medstar_mp_add_sticky_note ' + opts);
             mPageCCLCall('medstar_mp_add_sticky_note', parseReply)(opts);
         });
         
@@ -88,6 +91,7 @@ mmatph_redraw = function(){
         $('.mmatph_parent').append(docLabel);
 
     }
+    console.log('mp_cust_get_ma_patient_handoff ' + opts);
     mPageCCLCall('mp_cust_get_ma_patient_handoff', parseReply)(opts);
 
 }
