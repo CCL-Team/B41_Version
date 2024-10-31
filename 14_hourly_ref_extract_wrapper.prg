@@ -16,6 +16,8 @@ Mod Date       Analyst              MCGA   Comment
 --- ---------- -------------------- ------ ---------------------------------------------------------------------------------------
 N/A 06/03/2024 Simeon Akinsulie     346022 Initial Release
 001 09/18/2024 Michael Mayes        349910 Adding locations and fields in subscripts
+002 10/14/2024 Michael Mayes        350390 Removing some modalities from new locations
+003 10/24/2024 Michael Mayes        350390 Removing some modalities from new locations... again.
 *************END OF ALL MODCONTROL BLOCKS* **************************************************************************************/
 
   drop program 14_hourly_ref_extract_wrapper go
@@ -44,9 +46,9 @@ set output_file     = build2( "/cerner/d_P41/cust_output_2/referral_extract/"
 execute 14_referral_uc_extract      output_file, '', '', 2
 execute 14_referral_mrn_rad_extract output_file, '', '', 2
 
-select into $OUTDEV 
-    MSG="COMPLETED" 
-  from dummyt 
+select into $OUTDEV
+    MSG="COMPLETED"
+  from dummyt
 with nocounter
 
 /**************************************************************
@@ -55,3 +57,4 @@ with nocounter
 
 end
 go
+

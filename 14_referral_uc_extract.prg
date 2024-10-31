@@ -16,6 +16,8 @@ Mod Date       Analyst              MCGA   Comment
 --- ---------- -------------------- ------ ---------------------------------------------------------------------------------------
 N/A 06/03/2024 Simeon Akinsulie     346022 Initial Release
 001 09/18/2024 Michael Mayes        349910 Adding locations and fields
+002 10/14/2024 Michael Mayes        350390 Removing some modalities from new locations
+003 10/24/2024 Michael Mayes        350390 Removing some modalities from new locations... again.
 *************END OF ALL MODCONTROL BLOCKS* **************************************************************************************/
   drop program 14_referral_uc_extract go
 create program 14_referral_uc_extract
@@ -149,14 +151,14 @@ if (OpsInd = 1 or $OUTDEV = "OPS" or $Type = 2)
          , DMI.updt_cnt    ;Increment count with each run
          , DMI.updt_dt_tm  ;System update dt/tm
       from DM_INFO DMI
-    
+
       plan DMI
        where DMI.info_domain = info_domain
          and DMI.info_name = info_name
     detail
         call echo("DM_INFO")
         call echo(dmi.info_date)
-        
+
         last_run_hour = format(DMI.info_date, "hh;;q")
         next_run_hour = format(cnvtlookahead("1,H",DMI.info_date), "hh;;q")
         last_run_date = format(DMI.info_date, "mmddyyyy;;q")
@@ -171,7 +173,7 @@ if (OpsInd = 1 or $OUTDEV = "OPS" or $Type = 2)
 
     set xCheck = findstring(',', $start_dt)
     set xECheck = findstring(',', $End_Dt)
-    
+
     call echo("Else")
     if(WEEKDAY(CURDATE) = 1)
         call echo("Weekend")
@@ -181,15 +183,15 @@ if (OpsInd = 1 or $OUTDEV = "OPS" or $Type = 2)
             set end_dt_tm_n   = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set start_time    = "1600"
             set end_time      = "0759"
-        
+
         else
             set start_dt_tm_n = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set end_dt_tm_n   = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set start_time    = build2(format(cnvtlookbehind("1,H",CNVTDATETIME(curdate,curtime)),"hh;;q"),"00")
             set end_time      = build2(format(cnvtlookbehind("1,H",CNVTDATETIME(curdate,curtime)),"hh;;q"),"59")
-        
+
         endif
-    
+
     elseif(WEEKDAY(CURDATE) in(2,3,4,5))
         call echo('Logic 2')
         if(cnvtint(format(CNVTDATETIME(curdate,curtime),"hh;;q")) = 8)
@@ -198,7 +200,7 @@ if (OpsInd = 1 or $OUTDEV = "OPS" or $Type = 2)
             set start_time    = "1600"
             set end_time      = "0759"
         else
-        
+
         set start_dt_tm_n   = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
         set end_dt_tm_n     = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
         set start_time      = build2(format(cnvtlookbehind("1,H",CNVTDATETIME(curdate,curtime)),"hh;;q"),"00")
@@ -227,7 +229,7 @@ select into "nl:"
        Person p,
        encounter e,
        organization org
-  
+
   plan o
    where o.orig_order_dt_tm between cnvtdatetime(cnvtdate(start_dt_tm_n),cnvtint(start_time))
                                 and cnvtdatetime(cnvtdate(end_dt_tm_n),cnvtint(end_time))
@@ -235,16 +237,16 @@ select into "nl:"
      and o.ordered_as_mnemonic = "*Referral to MedStar*"
      and o.catalog_cd not in(833716691.00,833728881.00)
      and o.synonym_id not in (select crg.synonym_id from cust_referral_grouping crg where crg.specialty_group = 'Therapy')
-  
+
   join e
    where e.encntr_id = o.encntr_id
      and e.encntr_type_cd = 5043178
      and e.med_service_cd != 950461507.00;cancelled
-  
+
   join org
    where org.organization_id = e.organization_id
      and org.org_name in ( "*Urgent*", "*Prompt*")
-  
+
   join p
    where p.person_id = e.person_id
      and p.name_last_key != "ZZ*"
@@ -265,7 +267,7 @@ head report
 head p.person_id
     patients = patients + 1
     order_cnt = 0
-    
+
     if(patients > size(rs->qual,5))
         stat=alterlist(rs->qual,patients+100)
     endif
@@ -278,7 +280,7 @@ head p.person_id
 head o.order_id
     order_cnt = order_cnt + 1
     stat = alterlist(rs->qual[patients].orders, order_cnt)
-  
+
     rs->qual[patients].orders[order_cnt].encntrid       = e.encntr_id
     rs->qual[patients].orders[order_cnt].reg_dt         = e.reg_dt_tm
     rs->qual[patients].orders[order_cnt].location       = uar_get_code_display(e.location_cd)
@@ -312,23 +314,23 @@ if((size(rs->qual,5) = 0)and $Type = 1)
     if(OpsInd !=1)
         select into $OUTDEV
           from dummyt
-        
+
         Detail
             row + 1
             col 001 "URGENT CARE REFERRAL EXTRACT";report_title
-            
+
             row + 1
             col 001 "You requested: "
             col 016  $Start_Dt
             col 040 "TO"
             col 045 $End_Dt
-            
+
             row + 1
             col 001  "No Encounters were found for that data range."
-            
+
             row + 1
             col 001 "Please Search Again"
-            
+
             row + 2
         with format, separator = " "
     endif
@@ -343,16 +345,16 @@ call echo(build2("size:",size(rs->qual,5)))
     select into "nl:"
       from (dummyt d with seq = size(rs->qual,5)),
            person_alias pa
-      
+
       plan d
-      
+
       join pa
        where pa.person_id = rs->qual[d.seq].personid
          and pa.person_alias_type_cd = 2 ; CMRN
          and pa.active_ind = 1
          and pa.end_effective_dt_tm > cnvtdatetime(curdate,curtime)
     order by d.seq
-    
+
     head d.seq
         rs->qual[d.seq]->cmrn = cnvtalias(pa.alias,pa.alias_pool_cd)
     with nocounter
@@ -381,9 +383,9 @@ call echo(build2("size:",size(rs->qual,5)))
     Select into "nl:"
       from (dummyt d with seq = size(rs->qual,5)),
            phone ph
-    
+
     PLAN d
-    
+
     join ph
      where ph.parent_entity_id = rs->qual[d.seq].personid
        and ph.active_ind = 1
@@ -391,16 +393,16 @@ call echo(build2("size:",size(rs->qual,5)))
        and ph.beg_effective_dt_tm < cnvtdatetime(curdate,curtime)
        and ph.end_effective_dt_tm > cnvtdatetime(curdate,curtime)
        and ph.parent_entity_name = "PERSON"
-    
+
     order by d.seq
-    
+
     head d.seq
       if(findstring("(",ph.phone_num)>0)
         rs->qual[d.seq]->phone = ph.phone_num
-      
+
       else
         rs->qual[d.seq]->phone = format(ph.phone_num_key, "(###)###-####")
-      
+
       endif
     with nocounter, time = 1000
 
@@ -437,12 +439,12 @@ select into "nl:"
      , (dummyt d2 with seq = 1)
      , diagnosis dg
      , nomenclature n
-  
+
   plan d1
    where maxrec(d2, size(rs->qual[d1.seq].orders, 5))
 
   join d2
-  
+
   join dg
    where dg.encntr_id = rs->qual[d1.seq].orders[d2.seq].encntrid
      and dg.end_effective_dt_tm >= cnvtdatetime(curdate,curtime3)
@@ -487,9 +489,9 @@ select into "nl:"
 
   plan d1
    where maxrec(d2, size(rs->qual[d1.seq].orders, 5))
-  
+
   join d2
-  
+
   join od
    where od.order_id = rs->qual[d1.seq].orders[d2.seq].orderid
      and od.oe_field_id in (951929101) ;Target Phone
@@ -501,7 +503,7 @@ head od.order_id
 
 head od.oe_field_id
     X = 0
-    
+
     x=findstring("PH. ",od.oe_field_display_value, 1,0)
     if(x > 1)
        rs->qual[d1.seq].orders[d2.seq].target_phone = substring(x+4,x+12,od.oe_field_display_value)
@@ -519,11 +521,11 @@ head od.oe_field_id
     if(rs->qual[d1.seq].orders[d2.seq].target_provider in("1*","2*","3*","4*","5*","6*","7*","8*","9*","MedStar*"))
         rs->qual[d1.seq].orders[d2.seq].addr_prov_flag = "Y"
     endif
-  
+
     if(rs->qual[d1.seq].orders[d2.seq].target_provider in("MedStar*"))
         rs->qual[d1.seq].orders[d2.seq].target_provider = substring(1,x-1,od.oe_field_display_value)
     endif
-  
+
     if(rs->qual[d1.seq].orders[d2.seq].target_provider in("Ple*"))
         rs->qual[d1.seq].orders[d2.seq].target_provider = "REMOVED"
     endif
@@ -539,9 +541,9 @@ Select into "nl:"
 
   plan d
    where maxrec(d2, size(rs->qual[d.seq].orders, 5))
-  
+
   join d2
-  
+
   join ea
    where ea.encntr_id = rs->qual[d.seq].orders[d2.seq].encntrid
      and ea.encntr_alias_type_cd in (1077,10790); fin,mrn
@@ -566,14 +568,14 @@ call echorecord(rs)
     ; not found
     if(opsind = 1 and findfile(value(output_file))=0)
       with nocounter, format, format=stream, separator=" ", pcformat('"', ',',1),compress, check,heading
-    
+
     elseif(opsind = 1 and findfile(value(output_file))=1); found
       with nocounter, format, format=stream, separator=" ", pcformat('"', ',',1),compress, check, noheading, append
-    
+
     else
       with nocounter, time = 1500, format, separator = " "
     endif
-    
+
       into value(output_file)
           lastname                      = trim(substring(1, 30, rs->qual[d1.seq].lastname))
         , firstname                     = trim(substring(1, 30, rs->qual[d1.seq].firstname))
@@ -597,13 +599,13 @@ call echorecord(rs)
         , ref_to_location               = trim(substring(1, 50,rs->qual[d1.seq].orders[d2.seq].performing_location))  ;001
         ;001- That last one is not filled out... actually I think there are several like that.  Mainly to keep in line with the
         ;     MRN extract we do too... which appends to this.
-     
+
      from (dummyt d1 with seq = value(size(rs->qual,5))),
           (dummyt d2 with seq = 1)
-    
+
      plan d1
       where maxrec(d2, size(rs->qual[d1.seq].orders, 5))
-     
+
      join d2
       where rs->qual[d1.seq].orders[d2.seq].target_provider not in (
                                                 "Brett Levinson, MD"
@@ -647,9 +649,11 @@ call echorecord(rs)
                                               , "Katherine Day, MD"
                                               , "Faith Esterson, MD" )
         and rs->qual[d1.seq].orders[d2.seq].order_name != "Referral to MedStar Emergency Room*"
-    
+
     order by lastname,firstname
     with nocounter, time = 1500, format, separator = " "
+    
+
 #exit_program2
 ;001 TODO unsure if others use this... but turning it off for testing.
 update into DM_INFO DMI ;Update Ops job Dt/Tm and Count
@@ -663,4 +667,5 @@ commit
 #exit_program
 end
 go
+
 

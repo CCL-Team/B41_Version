@@ -16,6 +16,7 @@ Mod Date       Analyst              MCGA   Comment
 --- ---------- -------------------- ------ ---------------------------------------------------------------------------------------
 N/A 06/03/2024 Simeon Akinsulie     346022 Initial Release
 001 09/18/2024 Michael Mayes        349910 Adding locations and fields
+002 10/14/2024 Michael Mayes        350390 Removing some modalities from new locations
 *************END OF ALL MODCONTROL BLOCKS* **************************************************************************************/
   drop program 14_referral_mrn_rad_extract go
 create program 14_referral_mrn_rad_extract
@@ -147,31 +148,31 @@ if (OpsInd = 1 or $OUTDEV = "OPS" or $Type = 2)
          , DMI.updt_cnt ;Increment count with each run
          , DMI.updt_dt_tm ;System update dt/tm
       from DM_INFO DMI
-      
+
       plan DMI
        where DMI.info_domain = info_domain
          and DMI.info_name = info_name
-    
+
     detail
         call echo("DM_INFO")
         call echo(dmi.info_date)
-        
+
         last_run_hour = format(DMI.info_date, "hh;;q")
         next_run_hour = format(cnvtlookahead("1,H",DMI.info_date), "hh;;q")
         last_run_date = format(DMI.info_date, "mmddyyyy;;q")
     with nocounter
-    
+
     call echo(last_run_hour)
     call echo(next_run_hour)
     call echo(last_run_date)
-    
+
     set opsCurrDt = cnvtdatetime(curdate,curtime3)
-    
+
     set xCheck = findstring(',', $start_dt)
     set xECheck = findstring(',', $End_Dt)
-    
+
     call echo("Else")
-    
+
     if(WEEKDAY(CURDATE) = 1)
         call echo("Weekend")
         ;First time running with no entry in DM_Info table
@@ -180,15 +181,15 @@ if (OpsInd = 1 or $OUTDEV = "OPS" or $Type = 2)
             set end_dt_tm_n   = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set start_time    = "1600"
             set end_time      = "0759"
-        
+
         else
             set end_dt_tm_n   = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set start_time    = build2(format(cnvtlookbehind("1,H",CNVTDATETIME(curdate,curtime)),"hh;;q"),"00")
             set end_time      = build2(format(cnvtlookbehind("1,H",CNVTDATETIME(curdate,curtime)),"hh;;q"),"59")
             set start_dt_tm_n = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
-    
+
         endif
-    
+
     elseif(WEEKDAY(CURDATE) in(2,3,4,5))
         call echo('Logic 2')
         if(cnvtint(format(CNVTDATETIME(curdate,curtime),"hh;;q")) = 8)
@@ -196,20 +197,27 @@ if (OpsInd = 1 or $OUTDEV = "OPS" or $Type = 2)
             set end_dt_tm_n   = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set start_time    = "1600"
             set end_time      = "0759"
-        
+
         else
             set start_dt_tm_n = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set end_dt_tm_n   = trim(format(cnvtdatetime((curdate), 0000), "mmddyyyy;;d"),3)
             set start_time    = build2(format(cnvtlookbehind("1,H",CNVTDATETIME(curdate,curtime)),"hh;;q"),"00")
             set end_time      = build2(format(cnvtlookbehind("1,H",CNVTDATETIME(curdate,curtime)),"hh;;q"),"59")
-      
+
       endif
-    
+
     else
         go to exit_program
     endif
     call echo(build2('Got to end',start_dt_tm_n,' ', end_dt_tm_n))
 endif
+
+
+
+
+
+
+
 
 
 declare temp_string        = vc  with public, noconstant(fillstring(300, " "))
@@ -237,16 +245,24 @@ select into "nl:"
      and cnvtdatetime(cnvtdate(end_dt_tm_n),cnvtint(end_time))
      and o.order_status_cd = 2546
      and o.catalog_type_cd = 2517
-  
+
   join oc
    where oc.catalog_cd = o.catalog_cd
      and oc.active_ind = 1
      and oc.activity_subtype_cd != 1328919335.00 ; Diagnostic Radiology
      and cnvtupper(oc.primary_mnemonic) != "*XR*"
-  
+
   join od
    where od.order_id = o.order_id
      and od.oe_field_id =831982505
+     ;003->This gave us some problems
+     and od.action_sequence = (select max(od1.action_sequence)
+                                 from order_detail od1
+                                where od1.order_id = o.order_id
+                                  and od1.oe_field_id = od.oe_field_id
+                              )
+     ;003<-
+     ;002->
      and od.oe_field_value in ( 2627174945.00      ;Medstar Chevy Chase CT MR US XR
                               , 2627174677.00      ;Medstar Rockville CT MR XR
                               , 831586843.00       ;Medstar Bel Air CT XR DEXA MAMMO MR US
@@ -254,12 +270,43 @@ select into "nl:"
                               , 831587733.00       ;Medstar Lafayette I MR
                               , 831588331.00       ;Medstar Lafayette II CT XR DEXA MAMMO US
                               , 831588519.00       ;Medstar Timonium MR
-                              
+     
                               ;001->
                               , 1821481899.00      ;MedStar Georgetown Univ All Modalities
                               , 1821487843.00      ;Medstar Washington Hosp All Modalities
                               ;001<-
                               )
+     and (   (od.oe_field_value in ( 2627174945.00      ;Medstar Chevy Chase CT MR US XR
+                                   , 2627174677.00      ;Medstar Rockville CT MR XR
+                                   , 831586843.00       ;Medstar Bel Air CT XR DEXA MAMMO MR US
+                                   , 831587279.00       ;Medstar Brandywine CT XR DEXA MR US
+                                   , 831587733.00       ;Medstar Lafayette I MR
+                                   , 831588331.00       ;Medstar Lafayette II CT XR DEXA MAMMO US
+                                   , 831588519.00       ;Medstar Timonium MR
+                                   )
+             )
+          or (
+              od.oe_field_value in (
+                                       ;001->
+                                       ;  1821481899.00      ;MedStar Georgetown Univ All Modalities   ;003  pulled below.
+                                        1821487843.00      ;Medstar Washington Hosp All Modalities
+                                       ;001<-
+                                       )
+              and (    cnvtupper(oc.primary_mnemonic) != "DXA *"
+                   and cnvtupper(oc.primary_mnemonic) != "NM *"
+                   and cnvtupper(oc.primary_mnemonic) != "IR *"
+                  )
+             )
+          ;003->
+          or (
+              od.oe_field_value in ( 1821481899.00      ;MedStar Georgetown Univ All Modalities
+                                       )
+              and (    cnvtupper(oc.primary_mnemonic) = "US *"
+                  )
+             )
+          ;003<-
+         )
+     ;002<-
   join e
    where e.encntr_id =  o.originating_encntr_id
      and e.encntr_type_cd in ( 5043178.00 ;Clinic
@@ -267,7 +314,7 @@ select into "nl:"
                              , 3012539.00 ;Outpatient Message
                              ) ;Clinic, Recurring Clinic, Message
      and e.med_service_cd !=   950461507.00;cancelled
-  
+
   join p
    where p.person_id = e.person_id
      and p.name_last_key != "ZZ*"
@@ -289,11 +336,11 @@ head report
 head p.person_id
     patients = patients + 1
     order_cnt = 0
-    
+
     if(patients > size(rs->qual,5))
         stat=alterlist(rs->qual,patients+100)
     endif
-    
+
     rs->qual[patients].firstname = cnvtcap(cnvtlower(p.name_first))
     rs->qual[patients].lastname = cnvtcap(cnvtlower(p.name_last))
     rs->qual[patients].personid = e.person_id
@@ -301,7 +348,7 @@ head p.person_id
 head o.order_id
     order_cnt = order_cnt + 1
     stat = alterlist(rs->qual[patients].orders, order_cnt)
-    
+
     rs->qual[patients].orders[order_cnt].encntrid               = e.encntr_id
     rs->qual[patients].orders[order_cnt].reg_dt                 = e.reg_dt_tm
     rs->qual[patients].orders[order_cnt].location               = uar_get_code_display(e.location_cd)
@@ -311,7 +358,7 @@ head o.order_id
     rs->qual[patients].orders[order_cnt].e_location             = org.org_name
     rs->qual[patients].orders[order_cnt].reg_dt                 = e.reg_dt_tm
     rs->qual[patients].orders[order_cnt].visit_reason           = e.reason_for_visit
-    rs->qual[patients].orders[order_cnt].performing_location    = 
+    rs->qual[patients].orders[order_cnt].performing_location    =
         ;replace(replace(replace(replace(replace(replace(trim(od.oe_field_display_value)
         ;       ,"CT","")
         ;       ,"XR","")
@@ -333,30 +380,30 @@ head o.order_id
 
     rs->qual[patients].orders[order_cnt].target_service =
             replace(trim(substring(1,255,o.ordered_as_mnemonic)),"Referral to MedStar ","")
-    
+
     rs->qual[patients].orders[order_cnt].referral_type = "radiology"
     rs->qual[patients].orders[order_cnt].order_cnt = order_cnt
     if(oc.activity_subtype_cd in (633750, 633747))
         rs->qual[patients].orders[order_cnt].modality = concat(trim(uar_get_code_display(oc.activity_subtype_cd),3)
                                                               ,' (', trim(uar_get_code_meaning(oc.activity_subtype_cd),3),')')
-    
+
     elseif(substring(1, 3, uar_get_code_display(o.catalog_cd)) = "MRI")
       rs->qual[patients].orders[order_cnt].modality = concat(trim(uar_get_code_display(oc.activity_subtype_cd)), " (MRI)")
-    
+
     elseif(substring(1, 3, uar_get_code_display(o.catalog_cd)) = "CT")
       rs->qual[patients].orders[order_cnt].modality = concat(trim(uar_get_code_display(oc.activity_subtype_cd)), " (CT)")
-    
+
     elseif(substring(1, 3, uar_get_code_display(o.catalog_cd)) = "DXA")
       rs->qual[patients].orders[order_cnt].modality = "Dexa Scan"
-    
+
     else
       rs->qual[patients].orders[order_cnt].modality = uar_get_code_display(oc.activity_subtype_cd)
-    
+
     endif
-    
+
 foot p.person_id
     rs->qual[patients].order_cnt_tot = order_cnt
-    
+
     if(order_cnt > 1)
         rs->qual[patients].multiple_orders = 'Y'
     endif
@@ -377,23 +424,23 @@ if((size(rs->qual,5) = 0)and $Type = 1)
         Detail
             row + 1
             col 001 "URGENT CARE REFERRAL EXTRACT";report_title
-            
+
             row + 1
             col 001 "You requested: "
             col 016  $Start_Dt
             col 040 "TO"
             col 045 $End_Dt
-            
+
             row + 1
             col 001  "No Encounters were found for that data range."
-            
+
             row + 1
             col 001 "Please Search Again"
-            
+
             row + 2
     with format, separator = " "
   endif
-  
+
   Go to EXIT_PROGRAM
 endif
 
@@ -404,7 +451,7 @@ endif
 select into "nl:"
   from (dummyt d with seq = size(rs->qual,5)),
        person_alias pa
-  
+
   plan d
   join pa
    where pa.person_id = rs->qual[d.seq].personid
@@ -425,9 +472,9 @@ with nocounter
 Select into "nl:"
   FROM (DUMMYT D WITH SEQ = SIZE(RS->QUAL,5))
      , PHONE PH
-  
+
   PLAN d
-  
+
   join ph
    where ph.parent_entity_id = rs->qual[d.seq].PersonId
      and ph.active_ind = outerjoin(1)
@@ -474,7 +521,7 @@ with nocounter, time = 1000
 select into "nl:"
   from (dummyt d with seq = size(rs->qual,5))
      , address a
-  
+
   plan d
 
   join a
@@ -503,11 +550,11 @@ select into "nl:"
    where maxrec(d2, size(rs->qual[d1.seq].orders, 5))
 
   join d2
-  
+
   join dg
    where dg.encntr_id = rs->qual[d1.seq].orders[d2.seq].encntrid
      and dg.end_effective_dt_tm >= cnvtdatetime(curdate,curtime3)
-  
+
   join n
    where n.nomenclature_id = dg.nomenclature_id
      and n.source_identifier_keycap in ( "R10.9"     ;Abdominal pain
@@ -552,7 +599,7 @@ select into "nl:"
    where maxrec(d2, size(rs->qual[d1.seq].orders, 5))
 
   join d2
-  
+
   join od
    where od.order_id = rs->qual[d1.seq].orders[d2.seq].orderid
      and od.oe_field_id in (831982505,;Performing Location Radiology
@@ -566,7 +613,7 @@ head od.order_id
 head od.oe_field_id
     case(od.oe_field_id)
     of 831982505:
-        rs->qual[d1.seq].orders[d2.seq].performing_location = 
+        rs->qual[d1.seq].orders[d2.seq].performing_location =
                 ;replace(replace(replace(replace(replace(replace(trim(od.oe_field_display_value)
                 ;       ,"CT", "")
                 ;       ,"XR","")
@@ -577,45 +624,45 @@ head od.oe_field_id
                 ;;001 note - MR replace here catches the first part of MRN on some of these locations... fun.
                 ;;Replacing it over that.
                 trim(od.oe_field_display_value, 3)
-        
+
         rs->qual[d1.seq].orders[d2.seq].performing_location_cd = od.oe_field_value
-    
+
     of 951929101:
         rs->qual[d1.seq].orders[d2.seq].target_provider = od.oe_field_display_value
-        
+
         x=findstring(",",OD.oe_field_display_value, 1,0)
-        
+
         rs->qual[d1.seq].orders[d2.seq].target_provider = substring(1,x+3,od.oe_field_display_value);od.oe_field_display_value
         if (rs->qual[d1.seq].orders[d2.seq].target_provider  in ("*, MD*","*, PA*","*, DP*","*, CR*") )
           rs->qual[d1.seq].orders[d2.seq].target_provider = substring(1,x+3,od.oe_field_display_value)
         else
           rs->qual[d1.seq].orders[d2.seq].target_provider = substring(1,x-1,od.oe_field_display_value);od.oe_field_display_value
         endif
-        
+
         if(rs->qual[d1.seq].orders[d2.seq].target_provider in ("1*","2*","3*","4*","5*","6*","7*","8*","9*","MedStar*") )
           rs->qual[d1.seq].orders[d2.seq].addr_prov_flag = "Y"
         endif
-        
+
         if (rs->qual[d1.seq].orders[d2.seq].target_provider in("MedStar*") )
           rs->qual[d1.seq].orders[d2.seq].target_provider = substring(1,x-1,od.oe_field_display_value);od.oe_field_display_value
         endif
-        
+
         if (rs->qual[d1.seq].orders[d2.seq].target_provider in("Ple*") )
           rs->qual[d1.seq].orders[d2.seq].target_provider = "REMOVED"
         endif
-      
+
     of 258409575:
         rs->qual[d1.seq].orders[d2.seq].target_provider = od.oe_field_display_value
-    
+
     of 951929101:
         X = 0
-    
+
         x=findstring("PH. ",od.oe_field_display_value, 1,0)
-        
+
         if(x > 1)
             rs->qual[d1.seq].orders[d2.seq].target_phone = substring(x+4,x+12,od.oe_field_display_value)
         endif
-    
+
     endcase
 
 with nocounter, expand = 1
@@ -634,7 +681,7 @@ Select into "nl:"
    where maxrec(d2, size(rs->qual[d.seq].orders, 5))
 
   join d2
-  
+
   join ea
    where ea.encntr_id = rs->qual[d.seq].orders[d2.seq].encntrid
      and ea.encntr_alias_type_cd in (1077,10790); fin,mrn
@@ -656,14 +703,14 @@ call echorecord(rs)
 select
   if(opsind = 1 and findfile(value(output_file))=0); not found
       with nocounter, format, format=stream, separator=" ", pcformat('"', ',',1),compress, check,heading
-  
+
   elseif(opsind = 1 and findfile(value(output_file))=1); found
       with nocounter, format, format=stream, separator=" ", pcformat('"', ',',1),compress, check, noheading, append
-  
+
   else
       with nocounter, time = 1500, format, separator = " "
   endif
-  
+
   into value(output_file)
        lastname                      = trim(substring(1, 30, rs->qual[d1.seq].lastname))
      , firstname                     = trim(substring(1, 30, rs->qual[d1.seq].firstname))
@@ -685,13 +732,13 @@ select
      , referral_type                 = trim(substring(1, 10,rs->qual[d1.seq].orders[d2.seq].referral_type))
      , modality                      = trim(substring(1, 50,rs->qual[d1.seq].orders[d2.seq].modality))
      , ref_to_location               = trim(substring(1, 50,rs->qual[d1.seq].orders[d2.seq].performing_location))  ;001
-  
+
   from (dummyt d1 with seq           = value(size(rs->qual,5))),
        (dummyt d2 with seq = 1)
-  
+
   plan d1
    where maxrec(d2, size(rs->qual[d1.seq].orders, 5))
-  
+
   join d2
    where rs->qual[d1.seq].orders[d2.seq].performing_location_cd in (
                            2627174945.00 ;Medstar Chevy Chase CT MR US XR
@@ -706,13 +753,20 @@ select
                          , 1821487843.00      ;Medstar Washington Hosp All Modalities
                          ;001<-
                         )
-  
+
 order by lastname,firstname
 with nocounter, time = 1500, format, separator = " "
+
+
+
+
+
+
 #exit_program2
 
 
 #exit_program
 end
 go
+
 
