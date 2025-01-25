@@ -71,6 +71,16 @@ Source CCL: cust_script:9_dme_req.prg  (no name change)
 INC0691575 We noticed that if we get a goofy Interface date in which the TZ column is marked as UTC, but blah blah...
 we do the conversion for dob wrong and show a previous day.  We are trying to correct for that here.
 -------------------------------
+008 01/09/2025  Michael Mayes
+MCGA: 352167	
+SOM Task: PENDING
+Source CCL: cust_script:9_dme_req.prg  (no name change)
+INC0978972 When we gather Order details... we didn't do any kind of work to try and pull the latest value.  On top of some weird
+sorting issues when that happens, we had a case where we had a detail move from detail seq 2 to 3... and on req display, we 
+overwrote position 2 with the value, and showed the value again in position 3... 
+
+I think I can correct for all this with this change.
+-------------------------------
 ;************************************************************************/
  
  
@@ -685,7 +695,18 @@ PLAN ORD
     where ORD.order_id = request->order_qual[rec_cnt].order_id
 JOIN OD
   WHERE OD.order_id = ORD.order_id
- 
+  ;008->
+    ;Mayes here... we do goofy stuff if we modify the order and have multiple action sequences with different detail seqs of the 
+    ; same field.  We duped in our case.  Because our field moved down one.  So we didn't take the current detail 2... and instead.
+    ; showed the current detail 3 in detail 2 and detail 3's spot.  
+    ; I'm trying to only use the latest for each field here... and trust sequence of what I find after the fact... and am hoping 
+    ; for the best with that.
+    and od.action_sequence = (select max(od2.action_sequence)
+                                from order_detail od2
+                               where od2.order_id = ord.order_id
+                                 and od2.OE_FIELD_ID = od.OE_FIELD_ID
+                             )
+  ;008<-
 JOIN OC
  
 where OC.catalog_cd = ORD.catalog_cd
@@ -702,7 +723,7 @@ and off.accept_flag != 2.00
 JOIN CV
     WHERE CV.code_value = OD.oe_field_id
  
-order by ord.order_id
+order by ord.order_id, od.detail_sequence
  
 head report
  
