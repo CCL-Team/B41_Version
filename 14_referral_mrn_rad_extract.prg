@@ -17,6 +17,9 @@ Mod Date       Analyst              MCGA   Comment
 N/A 06/03/2024 Simeon Akinsulie     346022 Initial Release
 001 09/18/2024 Michael Mayes        349910 Adding locations and fields
 002 10/14/2024 Michael Mayes        350390 Removing some modalities from new locations
+003            Michael Mayes               I think I have mod 3s down there fighting something... looks like pulling in a new 
+                                           location and some versioning work.
+004 01/21/2025 Michael Mayes        351941 Adding location and modality to Georgetown
 *************END OF ALL MODCONTROL BLOCKS* **************************************************************************************/
   drop program 14_referral_mrn_rad_extract go
 create program 14_referral_mrn_rad_extract
@@ -243,14 +246,16 @@ select into "nl:"
   plan o
    where o.orig_order_dt_tm between cnvtdatetime(cnvtdate(start_dt_tm_n),cnvtint(start_time))
      and cnvtdatetime(cnvtdate(end_dt_tm_n),cnvtint(end_time))
-     and o.order_status_cd = 2546
-     and o.catalog_type_cd = 2517
+     and o.order_status_cd = 2546  ; FUTURE
+     and o.catalog_type_cd = 2517  ; RAD
 
   join oc
    where oc.catalog_cd = o.catalog_cd
      and oc.active_ind = 1
      and oc.activity_subtype_cd != 1328919335.00 ; Diagnostic Radiology
      and cnvtupper(oc.primary_mnemonic) != "*XR*"
+     and cnvtupper(oc.primary_mnemonic) != "NM *"  ;004 These are moving up here, from Washington specifically... no one gets now.
+     and cnvtupper(oc.primary_mnemonic) != "IR *"  ;004 These are moving up here, from Washington specifically... no one gets now.
 
   join od
    where od.order_id = o.order_id
@@ -263,19 +268,6 @@ select into "nl:"
                               )
      ;003<-
      ;002->
-     and od.oe_field_value in ( 2627174945.00      ;Medstar Chevy Chase CT MR US XR
-                              , 2627174677.00      ;Medstar Rockville CT MR XR
-                              , 831586843.00       ;Medstar Bel Air CT XR DEXA MAMMO MR US
-                              , 831587279.00       ;Medstar Brandywine CT XR DEXA MR US
-                              , 831587733.00       ;Medstar Lafayette I MR
-                              , 831588331.00       ;Medstar Lafayette II CT XR DEXA MAMMO US
-                              , 831588519.00       ;Medstar Timonium MR
-     
-                              ;001->
-                              , 1821481899.00      ;MedStar Georgetown Univ All Modalities
-                              , 1821487843.00      ;Medstar Washington Hosp All Modalities
-                              ;001<-
-                              )
      and (   (od.oe_field_value in ( 2627174945.00      ;Medstar Chevy Chase CT MR US XR
                                    , 2627174677.00      ;Medstar Rockville CT MR XR
                                    , 831586843.00       ;Medstar Bel Air CT XR DEXA MAMMO MR US
@@ -283,25 +275,25 @@ select into "nl:"
                                    , 831587733.00       ;Medstar Lafayette I MR
                                    , 831588331.00       ;Medstar Lafayette II CT XR DEXA MAMMO US
                                    , 831588519.00       ;Medstar Timonium MR
+                                   , 5757404269.00      ;MRN Chevy Chase at Barlow                                  ;004 Adding.
+                                   , 4567751099.00      ;BUILD BARLOW  THIS CAN PROBABLY BE REMOVED AFTER PROD MOVE ;004 Adding.
                                    )
              )
-          or (
-              od.oe_field_value in (
-                                       ;001->
-                                       ;  1821481899.00      ;MedStar Georgetown Univ All Modalities   ;003  pulled below.
-                                        1821487843.00      ;Medstar Washington Hosp All Modalities
-                                       ;001<-
-                                       )
+          or (od.oe_field_value in ( 1821487843.00      ;Medstar Washington Hosp All Modalities
+                                   )
               and (    cnvtupper(oc.primary_mnemonic) != "DXA *"
-                   and cnvtupper(oc.primary_mnemonic) != "NM *"
-                   and cnvtupper(oc.primary_mnemonic) != "IR *"
+                   ;004->  removing to move global... DXA stays though.
+                   ;and cnvtupper(oc.primary_mnemonic) != "NM *"
+                   ;and cnvtupper(oc.primary_mnemonic) != "IR *"
+                   ;004<-
                   )
              )
           ;003->
           or (
               od.oe_field_value in ( 1821481899.00      ;MedStar Georgetown Univ All Modalities
-                                       )
+                                   )
               and (    cnvtupper(oc.primary_mnemonic) = "US *"
+                    or cnvtupper(oc.primary_mnemonic) = "CT *"  ; 004 Adding CTs now.  (There might be one order we are missing?)
                   )
              )
           ;003<-
@@ -748,9 +740,11 @@ select
                          , 831587733.00  ;Medstar Lafayette I MR
                          , 831588331.00  ;Medstar Lafayette II CT XR DEXA MAMMO US
                          , 831588519.00  ;Medstar Timonium MR
-                         ;001->
-                         , 1821481899.00      ;MedStar Georgetown Univ All Modalities
-                         , 1821487843.00      ;Medstar Washington Hosp All Modalities
+                         , 5757404269.00 ;MRN Chevy Chase at Barlow                                  ;004 Adding.
+                         , 4567751099.00 ;BUILD BARLOW  THIS CAN PROBABLY BE REMOVED AFTER PROD MOVE ;004 Adding.
+                         ;001->          
+                         , 1821481899.00 ;MedStar Georgetown Univ All Modalities
+                         , 1821487843.00 ;Medstar Washington Hosp All Modalities
                          ;001<-
                         )
 
