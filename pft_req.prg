@@ -93,11 +93,19 @@ CCL script:  cust_script: card_req.prg     (no name change)
 Supressing the automatic printing of three Echocardiogram orders for WHC only.
 --------------------------------
 #013 11/26/2024    Michael Mayes
-MCGA: PEND
-SOM RITM/Task: PEND
+MCGA: 351256
+SOM RITM/Task: SCTASK0135786
 Requesters:
 CCL script:  I'm stealing Card req... for a PFT orders Pulmonary Function Test... panic.
 They need future orders supported... and now are trying to change a couple of data points.  Order Dx instead of Enc DX...
+Prov ID signing instead of update ID.
+--------------------------------
+#013 02/20/2025    Michael Mayes
+MCGA: 352700
+SOM RITM/Task: SCTASK0152163
+Requesters:
+CCL script:  From INC1026503.  Looks like if we fail to have an enc MRN... we hard fail on a query below.
+             I need to outerjoin that, and then come up with a way to deliver a correct MRN.
 Prov ID signing instead of update ID.
 --------------------------------
 *****************************************************************************************/
@@ -219,7 +227,7 @@ declare NPI_ID1 = f8 with constant ( uar_get_code_by( "DISPLAYKEY", 263, "NPI" )
 
 EXECUTE reportrtl
 
-%i CUST_SCRIPT:pft_req.dvl
+%i cust_script:pft_req.dvl
 
 free record card_req
 record card_req
@@ -452,15 +460,16 @@ join E
     where e.encntr_id =  request->order_qual[rec_cnt].encntr_id ; 003 09/23/2013  Returned.
 ;   where e.encntr_id = request->order_qual[1].encntr_id    ; 002 09/20/2013 replacement.
 
-JOIN ea WHERE EA.ENCNTR_ID = E.ENCNTR_ID
-    and EA.ENCNTR_ALIAS_TYPE_CD+0 = mrn_cd
-    and ea.ACTIVE_IND = 1
-    and EA.END_EFFECTIVE_DT_TM > CNVTDATETIME(CURDATE, curtime3)
-JOIN ea1 WHERE EA1.ENCNTR_ID = E.ENCNTR_ID
-    and EA1.ENCNTR_ALIAS_TYPE_CD+0 = FIN
-    and ea1.ACTIVE_IND = 1
-    and EA1.END_EFFECTIVE_DT_TM > CNVTDATETIME(CURDATE, curtime3)
-
+;013-> Outerjoining all this
+JOIN ea  WHERE EA.ENCNTR_ID               = outerjoin(E.ENCNTR_ID)
+           and EA.ENCNTR_ALIAS_TYPE_CD+0  = outerjoin(mrn_cd)
+           and ea.ACTIVE_IND              = outerjoin(1)
+           and EA.END_EFFECTIVE_DT_TM     > outerjoin(CNVTDATETIME(CURDATE, curtime3))
+JOIN ea1 WHERE EA1.ENCNTR_ID              = outerjoin(E.ENCNTR_ID)
+           and EA1.ENCNTR_ALIAS_TYPE_CD+0 = outerjoin(FIN)
+           and ea1.ACTIVE_IND             = outerjoin(1)
+           and EA1.END_EFFECTIVE_DT_TM    > outerjoin(CNVTDATETIME(CURDATE, curtime3))
+;013<-
 
 ;JOIN EL
 ;   WHERE EL.encntr_id = E.encntr_id
@@ -619,6 +628,34 @@ foot report
     endif
 
 WITH nocounter, outerjoin = dt
+
+
+;013-> Hey we can miss out on MRN now due to the outerjoin above.
+;      And check it out, I figured out how to query for the correct person alias
+select into 'nl:'
+      alias1 = pa.alias;cnvtalias(pa.alias, pa.alias_pool_cd)  Too big... we need the naked MRN
+  
+  from person_alias pa
+     , encounter e
+     , org_alias_pool_reltn oapr
+ 
+ where e.encntr_id                     = request->order_qual[rec_cnt].encntr_id
+   
+   and oapr.organization_id            =  e.organization_id
+   and oapr.alias_entity_alias_type_cd =  10.0  ;MRN
+   and oapr.alias_entity_name          =  'PERSON_ALIAS'
+   
+   and pa.person_id                    =  e.person_id
+   and pa.person_alias_type_cd         =  oapr.alias_entity_alias_type_cd
+   and pa.alias_pool_cd                =  oapr.alias_pool_cd
+   and pa.end_effective_dt_tm          >  cnvtdatetime(curdate, curtime3)
+   and pa.active_ind                   =  1
+detail
+    card_req->mrn = alias1
+with nocounter
+
+;013<-
+
 
  /************************suppression**********/
 if(card_req->action_cd in( 2529.00, 2539.00));Completed; Status change   09/20/2013
