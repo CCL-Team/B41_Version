@@ -20,6 +20,7 @@ N/A 06/03/2024 Simeon Akinsulie     346022 Initial Release
 003            Michael Mayes               I think I have mod 3s down there fighting something... looks like pulling in a new 
                                            location and some versioning work.
 004 01/21/2025 Michael Mayes        351941 Adding location and modality to Georgetown
+005 02/26/2025 Michael Mayes        352481 Adding Mammo to Georgetown
 *************END OF ALL MODCONTROL BLOCKS* **************************************************************************************/
   drop program 14_referral_mrn_rad_extract go
 create program 14_referral_mrn_rad_extract
@@ -294,6 +295,7 @@ select into "nl:"
                                    )
               and (    cnvtupper(oc.primary_mnemonic) = "US *"
                     or cnvtupper(oc.primary_mnemonic) = "CT *"  ; 004 Adding CTs now.  (There might be one order we are missing?)
+                    or cnvtupper(oc.primary_mnemonic) = "MG *"    ; 005 Adding Mammo now.
                   )
              )
           ;003<-
