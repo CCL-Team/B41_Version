@@ -20,7 +20,7 @@ N/A    03/06/2020		Jeremy Daniel         	N/A	          		Initial Release
 002	   03/01/2021		jwd107					n/a					remove Sunil from STM email
 003	   08/22/2022		jwd107					n/a					add monkey pox emailed reports
 004    03/08/2023		jwd107					n.a					remove JS from mp MD email
- 
+005    03/13/2025       Michael Mayes           PEND                Removing a couple of reports unneeded now.
 *************END OF ALL MODCONTROL BLOCKS* ***************************************************************************************/
  
 drop program doh_covid19_case_wrapper go
@@ -126,11 +126,11 @@ execute doh_covid19_results_va_poc "418fb3d8.medstar.net@amer.teams.ms" ;VA emai
  
  
  
-execute doh_covid19_results_ns2 "Justin.W.Salz@Medstar.net,Ed.Bonner@Medstar.net" ;Invalid Result email
-, start_dt_tm_vc , end_dt_tm_vc, 3
- 
-execute doh_covid19_results_ns3 "Justin.W.Salz@Medstar.net,Ed.Bonner@Medstar.net" ;Non-Standard Result email
-, start_dt_tm_vc , end_dt_tm_vc, 3
+;execute doh_covid19_results_ns2 "Justin.W.Salz@Medstar.net,Ed.Bonner@Medstar.net" ;Invalid Result email
+;, start_dt_tm_vc , end_dt_tm_vc, 3
+; 
+;execute doh_covid19_results_ns3 "Justin.W.Salz@Medstar.net,Ed.Bonner@Medstar.net" ;Non-Standard Result email
+;, start_dt_tm_vc , end_dt_tm_vc, 3
  
 execute doh_covid19_results_ns  "Justin.W.Salz@Medstar.net,Ed.Bonner@Medstar.net,Olakorede.F.Akintelure@medstar.net" ;Missing CLIA email
 , start_dt_tm_vc , end_dt_tm_vc, 3
