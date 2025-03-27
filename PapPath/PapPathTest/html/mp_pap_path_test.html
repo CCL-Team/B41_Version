@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <meta http-equiv="Content-Type"  content="XMLCCLREQUEST,APPLINK,MPAGES_EVENT,MPAGES_SVC_EVENT,CCLLINK,CCLLINKPOPUP,CCLNEWWINDOW,CCLNEWSESSIONWINDOW,CCLEVENT,CCLEKSREPLYOBJECT" name="discern"/>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+ 
+ 
+    <title>Women's Health - Cervical Cytology Specimen and STI Order Log TESTPAGE</title>
+ 
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\bootstrap.css"            rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\select2.min.css"          rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\daterangepicker.css"      rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\dataTables.css"           rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\buttons.bootstrap4.css"   rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\fontawesome.css"          rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\regular.css"              rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\solid.css"                rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\nprogress.css"            rel="stylesheet">
+    <link href="I:\\mPages\\PapPathTest\\lib\\css\\switchery.min.css"        rel="stylesheet">
+    
+    <link href="I:\\mPages\\PapPathTest\\css\\custom.css" rel="stylesheet">
+    
+    <style>
+        
+    </style>
+</head>
+ 
+<body>
+    <div class="container-fluid">
+        <ul class="nav nav-tabs">
+            <li class="nav-item"><a class="nav-link active" data-toggle="tab" data-target="#orderLog">Order Log</a></li>
+            <li class="nav-item"><a class="nav-link"        data-toggle="tab" data-target="#highRisk">High Risk</a></li>
+        </ul>
+        <div class="tab-content" id="tab-container">
+            <div id="orderLog" class="tab-pane fade show active">
+                <!-- page content -->
+                <div id="OLWait" class="newWait modalHide">
+                    <div class="modal-dialog modal-m">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Order Log Loading</h3>
+                            </div>
+                            
+                            <div class="modal-body">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="OLSubFilters" class="newWait modalHide">
+                    <div class="modal-dialog modal-m subFiltCont">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Order Log Result Subfilters</h3>
+                                <button type="button" class="close" data-dismiss="modal" id="OLSubFiltDismiss">&times;</button>
+                            </div>
+                            
+                            <div class="modal-body container">
+                                <div class="form-group">
+                                    <label class="OLLabel" for="OLsubfiltProv">Ordering Provider</label>
+                                    <select multiple="multiple" name="OLsubfiltProv" id="OLsubfiltProv" style="width: 100%">
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="OLLabel" for="OLsubfiltTA">Turn Around</label>
+                                    <select multiple="multiple" name="OLsubfiltTA" id="OLsubfiltTA" style="width: 100%">
+                                        <option value='[Blanks]'>[Blanks]</option>
+                                    </select>
+                                </div>
+                                <div class="form-group subFiltButGroup">
+                                    <button type="button" class="btn btn-primary btn-md" id="OLSubFiltBut"><i class="fas fa-ambulance"></i>  Load</button>
+                                    <button type="button" class="btn btn-primary btn-md" id="OLSubFiltButClear"><i class="fas fa-undo"></i>  Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="row tileFiltBorder">
+                        <div id="totalMetrics" class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h3 id="BillingHeader">Women's Health - Cervical Cytology Specimen and STI Order Log <span style="font-weight:bold;color:red">TESTPAGE</span></h3>
+                                    <p class="lead">A MedConnect tool that generates and allows for the electronic tracking of Pap Smear, STI and specimen results for all patients based on MedStar location and/or healthcare provider.<p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div id="statsRow" style="display:none">
+                                    <div class="row tile_count col-md-12">
+                                        <div class="col-6  tile_stats_count">
+                                            <span class="count_top"><i class="fas fa-ambulance"></i> Overdue Results</span>
+                                            <div id="totCol" class="count"></div>
+                                            <span class="count_bottom"><i id="perDueCol">0% </i> Overdue</span>
+                                        </div>
+                                        <div class="col-6  tile_stats_count">
+                                            <span class="count_top"><i class="fas fa-clock"></i> Average Turnaround</span>
+                                            <div id="avgturn" class="count"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <p>Analytics above based on all providers for the date range and practice locations selected and represents total patients and % satisfied</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="col-md-4">
+                            <form class="filterForm">
+                                <div class="form-group row">
+                                    <label class="col-md-3 col-form-label" for="name">Location</label>
+                                    <div class="col-md-9">
+                                        <select multiple="multiple" name="select-practiceLoc" id="select-practiceLoc"  style="width: 100%">
+                                            <option></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-md-3 col-form-label" for="select-provider">Ordering Provider</label>
+                                    <div class="col-md-9">
+                                        <select multiple="multiple" name="select-provider" id="select-provider"  style="width: 100%">
+                                            <option></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-md-3 col-form-label" for="dateRange">Date Range</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text btn btn-primary" id="DatePrevBtn">
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </span>
+                                                
+                                                <span class="input-group-text btn btn-primary" id="DateCalBtn">
+                                                    <i class="far fa-calendar"></i>
+                                                </span>
+                                            
+                                            </div>
+                                            
+                                            <input type="text" name="dateRange" id="dateRange" style="text-align: center" class="form-control" value="" autocomplete="off"/>
+                                            
+                                            <div class="input-group-append">
+                                                <span class="input-group-text btn btn-primary" id="DateNextBtn">
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </span>
+                                            
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-md-3 col-form-label">
+                                        <input type="checkbox" name="autoRefreshTgl" id="autoRefreshTgl" class="js-switch"/>  Auto Refresh
+                                    </label>
+                                    <div class="col-md-9">
+                                        <button type="button" class="btn btn-primary btn-md" id="refBtn"><i class="fas fa-ambulance"></i>  Load</button>
+                                        <button type="button" class="btn btn-primary btn-md" id="defBtn"><i class="fas fa-cogs"></i>  Set as Default</button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div id="printArea" class="col-md-12">
+                            <div id="detailMetrics" class="x_content" >
+                                <div class="table-responsive">
+                                    <table id="tblActivity" class="table jambo_table bulk_action table-bordered table-striped dt-responsive" width="100%">
+                                        <colgroup> <!-- PATIENT -->
+                                            <col span="4">
+                                        </colgroup>
+                                        <colgroup> <!-- ORDER -->
+                                            <col span="4">
+                                        </colgroup>
+                                        <colgroup> <!-- RESULT -->
+                                            <col span="3" >
+                                        </colgroup>
+                                        <colgroup> <!-- ENDORSE -->
+                                            <col span="2">
+                                        </colgroup>
+                                        <thead>
+                                            <tr id="tableGroupHeader">
+                                                <td colspan="4" class="text-center          ">PATIENT</td>
+                                                <td colspan="4" class="text-center dtHeadSec">ORDER</td>
+                                                <td colspan="3" class="text-center dtHeadSec">RESULT</td>
+                                                <td colspan="2" class="text-center dtHeadSec">ENDORSEMENT</td>
+                                            </tr>
+                                            <tr>
+                                                <th>PER_ID</th>                          <!-- 0  PER_ID       DT HIDDEN    -->
+                                                <th>ENC_ID</th>                          <!-- 1  ENC_ID       DT HIDDEN    -->
+                                                <th class="text-center">NAME</th>        <!-- 2  NAME                      -->
+                                                <th class="text-center">FIN</th>         <!-- 3  FIN                       -->
+                                                <th class="text-center">PROVIDER</th>    <!-- 4  PROVIDER                  -->
+                                                <th class="text-center">DATE</th>        <!-- 5  ORDER_DATE                -->
+                                                <th class="text-center">NAME</th>        <!-- 6  ORD_NAME                  -->
+                                                <th class="text-center">STATUS</th>      <!-- 7  STATUS                    -->
+                                                <th class="text-center">TURNAROUND</th>  <!-- 8  TURNAROUND                -->
+                                                <th class="text-center">RECEIVED</th>    <!-- 9  RECEIVED                  -->
+                                                <th class="text-center">DATE</th>        <!-- 10 RESULT_DATE               -->
+                                                <th class="text-center">ENDORSED BY</th> <!-- 11 ENDORSED_BY               -->
+                                                <th class="text-center">DATE</th>        <!-- 12 ENDORSE_DATE              -->
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <footer>
+                    <div>
+                        Powered by <a>MedStar Cerner/Oracle</a>
+                    </div>
+                </footer>
+            </div>
+            <div id="highRisk" class="tab-pane fade">
+            <!-- page content -->
+                <div id="HRWait" class="newWait modalHide">
+                    <div class="modal-dialog modal-m">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>High Risk Loading</h3>
+                            </div>
+                            
+                            <div class="modal-body">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" roll="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="HRSubFilters" class="newWait modalHide">
+                    <div class="modal-dialog modal-m subFiltCont">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>High Risk Result Subfilters</h3>
+                                <button type="button" class="close" data-dismiss="modal" id="HRSubFiltDismiss">&times;</button>
+                            </div>
+                            
+                            <div class="modal-body container">
+                                <div class="form-group">
+                                    <label class="OLLabel" for="HRsubfiltProv">Ordering Provider</label>
+                                    <select multiple="multiple" name="HRsubfiltProv" id="HRsubfiltProv" style="width: 100%">
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="OLLabel" for="HRsubfiltRisk">Risks</label>
+                                    <select multiple="multiple" name="HRsubfiltRisk" id="HRsubfiltRisk" style="width: 100%">
+                                        <option value="1">Out of Care</option>
+                                        <option value="2">High Risk</option>
+                                        <option value="4">Needs Colposcopy</option>
+                                        <option value="8">Tissue Pathology Outstanding</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="OLLabel" for="HRsubfiltAPPT">Next Appointment Type</label>
+                                    <select multiple="multiple" name="HRsubfiltAPPT" id="HRsubfiltAPPT" style="width: 100%">
+                                        <option value="[Blank]">[Blank]</option>
+                                    </select>
+                                </div>
+                                <div class="form-group subFiltButGroup">
+                                    <button type="button" class="btn btn-primary btn-md" id="HRSubFiltBut"><i class="fas fa-ambulance"></i>  Load</button>
+                                    <button type="button" class="btn btn-primary btn-md" id="HRSubFiltButClear"><i class="fas fa-undo"></i>  Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="HRPOCModal" class="newModal modalHide">
+                    <div id="StatsDiv" class="modal-dialog commentDiag">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title text-center" id="HRPOCTitle">TESTING</h4>
+                                <button type="button" class="close" data-dismiss="modal" id="HRPOCModalDismiss">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12 col-xs-12">
+                                        <div class="card">
+                                            <div class="card-title">
+                                                <span class="comCardTitle">Plan of Care and Follow Up Date</span>
+                                                <span type="button" class="collapse-link comCollapse"><i class="fa fa-chevron-up"></i></button>
+                                            </div>
+                                            <div class="card-text">
+                                                <form>
+                                                    <div class="form-group row">
+                                                        <label class="col-md-3 col-form-label" for="name">Plan of Care</label>
+                                                        <div class="col-md-9">
+                                                            <textarea class="form-control commentText" maxlength="255" name="HRPOCText" id="HRPOCText" ></textarea>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                     <div class="form-group row">
+                                                        <label class="col-md-3 col-form-label" for="HRPOCDatePicker">Follow Up Date</label>
+                                                        <div class="col-md-9 ">
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text btn btn-primary" id="DateCalBtn">
+                                                                        <i class="far fa-calendar"></i>
+                                                                    </span>
+                                                                </div>
+                                            
+                                                                <input type="text" class="form-control " style="text-align: center" name="HRPOCDatePicker" id="HRPOCDatePicker" value=""/>
+                                                            </div>
+                                                        </div>
+                                                    </div> 
+
+                                                    <div class="item form-group col-md-12 col-sm-12 col-xs-12">
+                                                        <div class="buttons text-center">
+                                                            <button id="RPOCBtn" type="submit" class="btn btn-primary">Save and Close </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12 col-xs-12">
+                                        <div class="card">
+                                            <div class="card-title">
+                                                <span class="comCardTitle">Previous Comment(s)</span>
+                                                <span type="button" class="collapse-link comCollapse"><i class="fa fa-chevron-up"></i></button>
+                                            </div>
+                                            <div class="card-text">
+                                                <div id="prevCommentScroll">
+                                                    <div id="providerMessages"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right_col" role="main">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="row tileFiltBorder">
+                            <div id="totalMetricsHR" class="col-md-8">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h3><label id="BillingHeaderHR">Women's Health - High Risk <span style="font-weight:bold;color:red">TESTPAGE</span></label></h3>
+                                        <p class="lead">A MedConnect tool that generates and allows for the electronic tracking of Pap Smear, STI and specimen results for all patients based on MedStar location and/or healthcare provider.</p>
+                                    </div>
+                                </div>
+                                <div id="statsRowHR" style="display:none">
+                                    <div class="row tile_count">
+                                            <div class="col-3  tile_stats_count">
+                                                <span class="count_top"><i class="fas fa-question"></i> Out of Care</span>
+                                                <div id="oochr" class="HRcount"></div>
+                                            </div>
+                                            <div class="col-3  tile_stats_count">
+                                                <span class="count_top"><i class="fas fa-exclamation"></i> High Risk</span>
+                                                <div id="hrhr" class="HRcount"></div>
+                                            </div>
+                                            <div class="col-3  tile_stats_count">
+                                                <span class="count_top"><i class="fas fa-flask"></i> Need Colposcopy</span>
+                                                <div id="colpohr" class="HRcount"></div>
+                                            </div>
+                                            <div class="col-3  tile_stats_count">
+                                                <span class="count_top"><i class="fas fa-clock"></i> Tissue Pathology Outstanding</span>
+                                                <div id="tphr" class="HRcount"></div>
+                                            </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <p>Analytics above based on all providers for the practice locations selected.
+                                            <br/>Summary numbers above can be clicked to show specific patients that qualify.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                            </div> 
+                            <div class="col-md-4">
+                                <form class="filterForm">
+                                    <div class="form-group row">
+                                        <label class="col-md-3 col-form-label" for="name">Location</label>
+                                        <div class="col-md-9">
+                                            <div>
+                                                <select multiple="multiple" name="select-practiceLocHR" id="select-practiceLocHR"  style="width: 100%">
+                                                    <option></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-md-3 col-form-label" for="name">Ordering Provider</label>
+                                        <div class="col-md-9">
+                                            <div>
+                                                <select multiple="multiple" name="select-hrprovider" id="select-hrprovider"  style="width: 100%">
+                                                    <option></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-md-3 col-form-label" for="name">Lookback</label>
+                                        <div class="col-md-9">
+                                            <div class="btn-group" id="HRLookback">
+                                                <button type="button" value="1" class="btn btn-primary hrLBButton active">1 Year  </button>
+                                                <button type="button" value="2" class="btn btn-primary hrLBButton">       2 Years </button>
+                                                <button type="button" value="3" class="btn btn-primary hrLBButton">       3 Years </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group row">
+                                        <label class="col-md-3 col-form-label apptTooltip" for="website">Next Appt Date Range <i class="fa fa-regular fa-question-circle"></i></label>
+                                        <div class="col-md-9">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text btn btn-primary" id="HRDatePrevBtn">
+                                                        <i class="fas fa-chevron-left"></i>
+                                                    </span>
+                                                    
+                                                    <span class="input-group-text btn btn-primary" id="HRDateCalBtn">
+                                                        <i class="far fa-calendar"></i>
+                                                    </span>
+                                                </div>
+                                                
+                                                <input type="text" name="HRdateRange" id="HRdateRange" style="text-align: center" class="form-control" value="" autocomplete="off"/>
+                                                
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text btn btn-primary" id="HRDateNextBtn">
+                                                        <i class="fas fa-chevron-right"></i>
+                                                    </span>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group row">
+                                        <label class="col-md-3 col-form-label">
+                                            <input type="checkbox" name="autoRefreshTgl" id="autoRefreshTglHR" class="js-switch"/>  Auto Refresh
+                                        </label>
+                                        <div class="col-md-9">
+                                            <button type="button" class="btn btn-primary btn-md" id="refBtnHR"><i class="fas fa-ambulance"></i>  Load          </button>
+                                            <button type="button" class="btn btn-primary btn-md" id="defBtnHR"><i class="fas fa-cogs"     ></i>  Set as Default</button>
+                                        </div>
+                                        
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div id="printAreaHR" class="col-md-12">
+                                <div id="detailMetricsHR" class="x_content" >
+                                    <div class="table-responsive">
+                                        <table id="tblActivityHR" class="table jambo_table bulk_action table-bordered table-striped dt-responsive" width="100%">
+                                            <colgroup> 
+                                                <col span="2" class="">
+                                            </colgroup>
+                                            <colgroup> 
+                                                <col span="9" class="">
+                                            </colgroup>
+                                            <colgroup> 
+                                                <col span="2" class="">
+                                            </colgroup>
+                                            <colgroup> 
+                                                <col span="4" >
+                                            </colgroup>
+                                            <thead>
+                                                <tr id="tableGroupHeaderHR">
+                                                    <td colspan="2"  class="text-center"                >LINKS/RISK  </td>
+                                                    <td colspan="9"  class="text-center dtHeadSec"      >PATIENT     </td>
+                                                    <td colspan="10" class="text-center"                >APPOINTMENT </td>
+                                                    <td colspan="4"  class="text-center"                >RESULTS     </td>
+                                                    <td colspan="2"  class="text-center dtHeadSecOrange">PLAN OF CARE</td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="text-center linkTooltip"    >LINKS         <i class="fa fa-regular fa-question-circle"></i></th>  <!-- 0  LINKS                        -->
+                                                    <th class="text-center riskTooltip"    >RISKS         <i class="fa fa-regular fa-question-circle"></i></th>  <!-- 1  RISKS                        -->
+                                                    <th                                    >PER_ID                                                        </th>  <!-- 2  PER_ID             DT HIDDEN -->
+                                                    <th                                    >ENC_ID                                                        </th>  <!-- 3  ENC_ID             DT HIDDEN -->
+                                                    <th                                    >ORD_ID                                                        </th>  <!-- 4  ORD_ID             DT HIDDEN -->
+                                                    <th                                    >LOCATION                                                      </th>  <!-- 5  LOCATION           DT HIDDEN -->
+                                                    <th class="text-center"                >NAME                                                          </th>  <!-- 6  NAME                         -->
+                                                    <th class="text-center"                >DOB                                                           </th>  <!-- 7  DOB                          -->
+                                                    <th class="text-center"                >PHONE                                                         </th>  <!-- 8  PHONE                        -->
+                                                    <th class="text-center"                >PCP                                                           </th>  <!-- 9  PCP                          -->
+                                                    <th class="text-center"                >OB/GYN                                                        </th>  <!-- 10 OB_GYN                       -->
+                                                    <th class="text-center"                >LAST                                                          </th>  <!-- 11 LAST                         -->
+                                                    <th class="text-center"                >LAST APPOINTMENT TYPE                                         </th>  <!-- 12 LAST_APPT_TYPE     DT HIDDEN -->
+                                                    <th class="text-center"                >LAST APPOINTMENT DATE                                         </th>  <!-- 13 LAST_APPT_DATE     DT HIDDEN -->
+                                                    <th class="text-center"                >LAST APPOINTMENT LOC                                          </th>  <!-- 14 LAST_APPT_LOC      DT HIDDEN -->
+                                                    <th class="text-center"                >LAST APPOINTMENT PROV                                         </th>  <!-- 15 LAST_APPT_PROV     DT HIDDEN -->
+                                                    <th class="text-center"                >NEXT                                                          </th>  <!-- 16 NEXT                         -->
+                                                    <th class="text-center"                >NEXT APPOINTMENT TYPE                                         </th>  <!-- 17 NEXT_APPT_TYPE     DT HIDDEN -->
+                                                    <th class="text-center"                >NEXT APPOINTMENT DATE                                         </th>  <!-- 18 NEXT_APPT_DATE     DT HIDDEN -->
+                                                    <th class="text-center"                >NEXT APPOINTMENT LOC                                          </th>  <!-- 19 NEXT_APPT_LOC      DT HIDDEN -->
+                                                    <th class="text-center"                >NEXT APPOINTMENT PROV                                         </th>  <!-- 20 NEXT_APPT_PROV     DT HIDDEN -->
+                                                    <th class="text-center"                >ORDERING PROVIDER                                             </th>  <!-- 21 NEXT_APPT_PROV     DT HIDDEN -->
+                                                    <th class="text-center resultTooltip"  >ORDER RESULTS <i class="fa fa-regular fa-question-circle"></i></th>  <!-- 22 ORDER_RESULTS                -->
+                                                    <th class="text-center"                >ENDORSED BY                                                   </th>  <!-- 23 ENDORSED_BY                  -->
+                                                    <th class="text-center"                >ENDORSE DATE                                                  </th>  <!-- 24 ENDORSE_DATE                 -->
+                                                    <th class="text-center dtHeadSecOrange">FOLLOW UP DATE                                                </th>  <!-- 25 FOLLOW_UP_DATE               -->
+                                                    <th class="text-center dtHeadSecOrange">COMMENTS                                                      </th>  <!-- 26 COMMENTS                     -->
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /page content -->
+                <!-- footer content -->
+                <footer>
+                    <div>
+                        Powered by <a>MedStar Cerner/Oracle</a>
+                    </div>
+                </footer>
+                <!-- /footer content -->
+            </div>
+        </div>
+    </div>
+    <!-- I had a hard time with data tables printing not being able to use font awesome.  Probably due to IE security stoping
+         fonts from loading.  Not sure how Simeon got away with this.  Instead I'm going to load icons here so I can clone and 
+         place when building the print page -->
+    <div id="faPrintPalette" style="visibility:hidden">
+        <span id="faCheck"><i style="color:DarkCyan" class="fas fa-check"></i></span>
+        <span id="faTimes"><i style="color:Tomato" class="fas fa-times"></i></span>
+        <span id="faAmb"><i style="color:OrangeRed" class="fas fa-ambulance"></i></span>
+        <span id="faPerson"><i class="fas fa-user"></i></span>
+    </div>
+    
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\jquery-3.6.3.min.js"     ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\bootstrap.bundle.js"     ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\switchery.min.js"        ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\dataTables.js"           ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\buttons.bootstrap4.js"   ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\popper.min.js"           ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\nprogress.js"            ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\fontawesome.js"          ></script>
+    <script src='I:\\mPages\\PapPathTest\\lib\\js\\lodash.min.js'           ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\select2.min.js"          ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\moment.min.js"           ></script>
+    <script src="I:\\mPages\\PapPathTest\\lib\\js\\daterangepicker.js"      ></script>
+    
+    
+    <script src="I:\\mPages\\PapPathTest\\js\\buttons.print.js"             ></script>
+    <script src="I:\\mPages\\PapPathTest\\js\\mp_pap_path.js"               ></script>
+
+    </body>
+</html>
+ 
