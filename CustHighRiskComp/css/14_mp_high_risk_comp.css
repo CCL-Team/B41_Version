@@ -1,0 +1,50 @@
+.mhrc_warning{
+    color: orangered;
+}
+
+.mhrc_table_div{
+    margin-top: 1rem;
+}
+
+.mhrc_table{
+    width: unset;  /* Clearing the Mpage Default... not enough data to be full width IMO */
+}
+
+.mhrc_thead{
+    color: rgb(78, 83, 86);
+    background-color: rgb(244, 244, 244);
+    font-family: Tahoma,Geneva,Verdana,Trebuchet MS,sans-serif;
+}
+
+.mhrc_thead_row{
+    
+}
+
+.mhrc_thead_cell{
+    padding: .33rem .5rem .33rem .5rem;
+    font-size: 1.1rem;
+    border-bottom: 2px solid rgb(155, 159, 161);
+    border-top   : 1px solid rgb(200, 202, 203);
+    border-right : 1px solid rgb(200, 202, 203);
+    border-left  : 1px solid rgb(200, 202, 203);
+}
+
+.mhrc_tbody{
+    border: 1px solid rgb(200, 202, 203);
+}
+
+.mhrc_body_row{
+    
+}
+
+.mhrc_body_row:nth-child(even){
+    background-color: #f4f4f4;
+}
+
+.mhrc_body_row:nth-child(odd){
+    background-color: #fefffe;
+}
+
+.mhrc_body_cell{
+    padding: .33rem .5rem .33rem .5rem;
+}
