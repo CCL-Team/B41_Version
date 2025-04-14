@@ -1,0 +1,443 @@
+.debug{
+    border: 1px solid red;
+}
+
+#BillingHeader{
+    text-transform: uppercase;
+}
+
+#BillingHeaderHR{
+    text-transform: uppercase;
+}
+
+
+/* ----------- Page Layout  ----------- */
+.container-fluid {
+    padding-left:  0px;
+    padding-right: 0px;
+}
+
+h1, .h1,
+h2, .h2,
+h3, .h3 {
+    margin-top: .8rem;
+    margin-bottom: .8rem;
+}
+
+body {
+    color: #73879C;
+    font-size: .8rem;
+    font-weight: 400;
+    line-height: 1.471
+}
+
+footer {
+    margin-right: 1rem;
+    text-align: right;
+}
+
+.lead{
+    font-size: 1rem;
+}
+
+.dtHeadSec{
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.dtHeadSecOrange {
+    background: #F39C12;
+    color: #fff
+}
+
+a {
+    color: #337ab7;
+    text-decoration: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+a:hover {
+    color: #204d74;
+    text-decoration: underline;
+}
+
+th {
+    font-weight: normal;
+}
+
+td {
+    word-wrap: normal;
+    white-space: nowrap;
+}
+
+
+
+
+/* ------------------------------------ */
+/* -------------- Forms  -------------- */
+.col-form-label{
+    font-weight: bold;
+    text-align: right
+}
+.form-control{
+    font-size: .8rem;
+}
+
+.btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active, .show > .btn-primary.dropdown-toggle {
+    color: #fff;
+    background-color: #204d74;
+    border-color: #122b40;
+}
+
+.form-group {
+    margin-bottom: .25rem;
+}
+
+/* ------------------------------------ */
+
+/* -------------- Modals -------------- */
+.newWait{
+    position:fixed;
+    display:block;
+    width:100%;
+    height:100%;
+    text-align:center;
+    background-color:rgba(0, 0, 0, 0.7);
+    z-index:99;
+    top:0px;
+    left:0px;
+}
+
+.newModal{
+    position:fixed;
+    display:block;
+    width:100%;
+    height:100%;
+    text-align:center;
+    background-color:rgba(0, 0, 0, 0.7);
+    z-index:99;
+    top:0px;
+    left:0px;
+}
+
+.bodyScrollOff{
+    overflow: hidden;
+}
+
+.modalHide{
+    display: none;
+}
+
+.subFiltCont{
+    width: 45%
+}
+
+.subFiltButGroup{
+    margin-top: 1.5rem;
+}
+
+.OLLabel{
+    font-size: 1rem;
+}
+
+
+/* ------------------------------------ */
+
+/* ------------- Nav tabs ------------- */
+.nav-tabs > li {
+    font-size: 20px;
+    font-weight: bolder;
+    background-color: rgba(96, 105, 113, 1);
+    margin-bottom: 0px;
+}
+
+.nav-tabs .nav-link{
+    color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(42, 63, 84, 1);
+    margin-right: 0px;
+    border-bottom-width: 0px;
+    border-radius: 10px 10px 0 0;
+    text-transform: uppercase;
+}
+
+.nav-tabs {
+    background-color: rgba(96, 105, 113, 1);
+    border: 0px solid #ddd;
+    margin-top: 2px;
+}
+
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+    background-color: #337ab7;
+    border: 1px solid #2e6da4;
+    color: white;
+}
+/* ------------------------------------ */
+
+/* -------------- Filters ------------- */
+.filterForm{
+    margin-top: .8rem;
+    margin-bottom: .8rem;
+    padding-right: 15px;
+}
+
+
+
+/* ------------------------------------ */
+
+/* -------------- Buttons ------------- */
+.btn-primary {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.btn-primary:hover {
+    color: #fff;
+    background-color: #286090;
+    border-color: #204d74;
+}
+/* ------------------------------------ */
+
+/* -------------- Select2 ------------- */
+.select2-container--default .select2-selection--multiple .select2-selection__choice{
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    color: white;
+}
+
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove{
+    color: #c8cfe7;
+}
+
+/* ------------------------------------ */
+
+/* ------------- Datatiles ------------ */
+.tile_count {
+    margin-bottom: 1.5rem;
+    margin-top: 0px;
+}
+.tile_count .tile_stats_count {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative
+}
+
+.tile_count .tile_stats_count:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    height: 65px;
+    border-left: 2px solid #ADB2B5;
+    margin-top: 10px
+}
+@media (min-width: 992px) {
+    .tile_count .tile_stats_count:first-child:before {
+        border-left: 0
+    }
+}
+
+.tile_count .tile_stats_count .count,
+.tile_count .tile_stats_count .HRcount{
+    font-size: 30px;
+    line-height: 47px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .tile_count .tile_stats_count .count,
+    .tile_count .tile_stats_count .HRcount{
+        font-size: 40px
+    }
+}
+@media (min-width: 992px) and (max-width: 1100px) {
+    .tile_count .tile_stats_count .count,
+    .tile_count .tile_stats_count .HRcount{
+        font-size: 30px
+    }
+}
+
+.green {
+    color: #1ABB9C
+}
+
+.yellow {
+    color:rgb(250, 149, 8)
+}
+
+.red {
+    color: #E74C3C
+}
+
+.blue {
+    color: #3498DB
+}
+
+.count_top, .count_bottom{
+    color: #BDBDBD
+}
+
+.tileFiltBorder {
+    border-bottom: 2px solid #E6E9ED;
+    margin-bottom: .5rem;
+}
+
+.tileCountActive{
+    text-shadow: -1px -1px 0px black
+                , 1px -1px 0px black
+                , -1px 1px 0px black
+                , 1px 1px 0px black
+                , 0px 0px 0.5rem darkorange
+                , 0px 0px 0.3rem darkred;
+    color: darkorange;
+}
+
+/* ------------------------------------ */
+
+/* ------------ Datatables ------------ */
+.tableButtonFlex{
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tableButtonRightFlex{
+    display:flex;
+    align-items: baseline;
+}
+
+.tableButtonRightFlex div{
+    margin-left: 1rem;
+}
+
+#topPaginate{
+    margin-left: 1rem;
+}
+
+.page-item.active .page-link {
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+table.jambo_table thead {
+    background: rgba(52, 73, 94, 0.94);
+    color: #ECF0F1;
+}
+
+.table-bordered th, .table-bordered td{
+    padding: .3rem 1rem .3rem 1rem;
+}
+
+table.dataTable.table-striped > tbody > tr:nth-of-type(2n+1),
+.table-striped tbody tr:nth-of-type(odd){ 
+    background-color: #f8f8f9; 
+    color: black
+}
+table.dataTable.table-striped > tbody > tr:nth-of-type(2n){ 
+    background-color: rgba(211, 218, 227, 1);
+    color: black
+}
+
+.tab_center{
+    text-align: center;
+}
+
+.patientRecLink, .patientOrderLink{
+    margin-left: 5px;
+}
+
+.wrap-fix{
+    white-space: normal;
+}
+
+.pocButton{
+    padding-top:  0rem;
+    padding-bottom: 0rem;
+}
+
+.tableList{
+    padding-left: .5rem;
+}
+
+/* Fix for the dt length dropdown on older IE... I'm overriding a library 100% that was causing some grief. */
+.dropdown-menu{
+    top: 0px;
+}
+
+/* ------------------------------------ */
+/* ------------ Comments -------------- */
+
+#prevCommentScroll{
+    height: 200px;
+    overflow: auto;
+    overflow-y:scroll;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 0.3rem;
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+    border-bottom-left-radius: 0.3rem;
+    background-color: lightgrey;
+    padding: .2rem;
+}
+
+.modal-dialog{
+    display: inline-block;
+    text-align: left;
+    vertical-align: middle;
+    overflow-y: auto;
+    overflow-x: auto;
+    min-width: 300px;
+    max-width:75%
+}
+
+.comCollapse {
+    padding: 5px;
+    float: right;
+    opacity: 1;
+}
+
+.comCardTitle{
+    font-size: 1.1rem
+}
+.commentDiag{
+    min-width: 50%;
+}
+
+.card {
+    padding: 1rem;
+}
+
+.commentText{
+    height: 5rem;
+}
+
+.commentCardFlex{
+    display:flex;
+    justify-content: space-between;
+}
+
+.commentCard{
+    margin: .2rem;
+}
+
+.commentDate{
+    align-content: flex-end;
+}
+
+.popover{
+    max-width: 100%;
+}
+
+
+
+/* ------------------------------------ */
+
+.wrap-fix{
+    white-space: normal;
+}
+
+
