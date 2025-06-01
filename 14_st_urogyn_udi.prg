@@ -76,7 +76,7 @@ declare auth_cd  = f8  with protect, constant(uar_get_code_by(   'MEANING',  8, 
 declare alt_cd   = f8  with protect, constant(uar_get_code_by(   'MEANING',  8, 'ALTERED'                     ))
                                                                              
 
-declare grid_cd  = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'UGYNBLADDERSYMPTOMSGRID'     ))
+declare grid_cd  = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'UGYNUDI6'     ))
 
  
 declare lcv_dt_tm    = dq8 with protect

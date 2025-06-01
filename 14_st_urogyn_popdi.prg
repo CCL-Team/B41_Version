@@ -76,8 +76,8 @@ declare auth_cd  = f8  with protect, constant(uar_get_code_by(   'MEANING',  8, 
 declare alt_cd   = f8  with protect, constant(uar_get_code_by(   'MEANING',  8, 'ALTERED'                     ))
                                                                              
 ;This is hard duped, but we luck out and is the same in build and prod.
-;declare grid_cd  = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'PROLAPSESYMPTOMS'     ))
-declare grid_cd  = f8  with protect, constant(823832715.00)
+;declare grid_cd  = f8  with protect, constant(uar_get_code_by('DISPLAYKEY', 72, 'UGYNPOPDI6'     ))
+declare grid_cd  = f8  with protect, constant(4930007605.00)
 
  
 declare lcv_dt_tm    = dq8 with protect
