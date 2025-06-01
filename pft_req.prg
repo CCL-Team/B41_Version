@@ -100,13 +100,21 @@ CCL script:  I'm stealing Card req... for a PFT orders Pulmonary Function Test..
 They need future orders supported... and now are trying to change a couple of data points.  Order Dx instead of Enc DX...
 Prov ID signing instead of update ID.
 --------------------------------
-#013 02/20/2025    Michael Mayes
+#014 02/20/2025    Michael Mayes
 MCGA: 352700
-SOM RITM/Task: SCTASK0152163
+SOM RITM/Task: SCTASK0152269
 Requesters:
 CCL script:  From INC1026503.  Looks like if we fail to have an enc MRN... we hard fail on a query below.
              I need to outerjoin that, and then come up with a way to deliver a correct MRN.
 Prov ID signing instead of update ID.
+--------------------------------
+--------------------------------
+#015 04/25/2025    Michael Mayes
+MCGA: 353299
+SOM RITM/Task: PEND
+Requesters:
+CCL script:  Change some labels: Ordering and Attending MD to Ordering and Attending Physician
+             Add a label: for CC Physician.
 --------------------------------
 *****************************************************************************************/
 
@@ -439,7 +447,12 @@ JOIN OD
 JOIN OFF
     WHERE OC.oe_format_id = OFF.oe_format_id
     and off.oe_field_id = od.oe_field_id
-    and off.accept_flag != 2.00 ; 0.00  REQUIRED, 1.00  OPTIONAL, 2.00  NO DISPLAY,  3.00   DISPLAY ONLY
+    ;015-> adding some logic because they want to pull in a specific detail and it's built as flag 2. 
+    ;and off.accept_flag != 2.00 ; 0.00  REQUIRED, 1.00  OPTIONAL, 2.00  NO DISPLAY,  3.00   DISPLAY ONLY
+    and (   off.accept_flag != 2.00 ; 0.00  REQUIRED, 1.00  OPTIONAL, 2.00  NO DISPLAY,  3.00   DISPLAY ONLY
+         or off.oe_field_id = 740848017.00
+        )
+    ;015<-
 JOIN CV
     WHERE CV.code_value = OD.oe_field_id
     ;AND CV.display_key IN ("PRIORITY","FREQUENCY","EKGINDICATION","SPECIAL INSTRUCTIONS","ISOLATIONCODE")
@@ -460,7 +473,7 @@ join E
     where e.encntr_id =  request->order_qual[rec_cnt].encntr_id ; 003 09/23/2013  Returned.
 ;   where e.encntr_id = request->order_qual[1].encntr_id    ; 002 09/20/2013 replacement.
 
-;013-> Outerjoining all this
+;014-> Outerjoining all this
 JOIN ea  WHERE EA.ENCNTR_ID               = outerjoin(E.ENCNTR_ID)
            and EA.ENCNTR_ALIAS_TYPE_CD+0  = outerjoin(mrn_cd)
            and ea.ACTIVE_IND              = outerjoin(1)
@@ -469,7 +482,7 @@ JOIN ea1 WHERE EA1.ENCNTR_ID              = outerjoin(E.ENCNTR_ID)
            and EA1.ENCNTR_ALIAS_TYPE_CD+0 = outerjoin(FIN)
            and ea1.ACTIVE_IND             = outerjoin(1)
            and EA1.END_EFFECTIVE_DT_TM    > outerjoin(CNVTDATETIME(CURDATE, curtime3))
-;013<-
+;014<-
 
 ;JOIN EL
 ;   WHERE EL.encntr_id = E.encntr_id
@@ -579,6 +592,7 @@ Head o.order_id
 
 
 Head od.detail_sequence
+    call echo(od.OE_FIELD_DISPLAY_VALUE)
     if(od.oe_field_meaning != "ISOLATIONCODE")
         cnt_1 = cnt_1+1
         stat = alterlist(card_req->ord_detail, cnt_1)
@@ -586,6 +600,8 @@ Head od.detail_sequence
         card_req->ord_detail [cnt_1].title = cv.display
         card_req->ord_detail [cnt_1].value = od.oe_field_display_value
         card_req->ord_detail [cnt_1].meaning = od.oe_field_meaning
+        
+        
     endif
 
     if(od.oe_field_meaning = "DURATIONUNIT")
@@ -629,8 +645,11 @@ foot report
 
 WITH nocounter, outerjoin = dt
 
+call echo('test')
+call echorecord(card_req)
 
-;013-> Hey we can miss out on MRN now due to the outerjoin above.
+
+;014-> Hey we can miss out on MRN now due to the outerjoin above.
 ;      And check it out, I figured out how to query for the correct person alias
 select into 'nl:'
       alias1 = pa.alias;cnvtalias(pa.alias, pa.alias_pool_cd)  Too big... we need the naked MRN
@@ -654,7 +673,7 @@ detail
     card_req->mrn = alias1
 with nocounter
 
-;013<-
+;014<-
 
 
  /************************suppression**********/
@@ -1073,5 +1092,6 @@ set od_cnt = 0
 #EXIT_SCRIPT
 end
 go
+
 
 
