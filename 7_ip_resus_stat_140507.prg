@@ -81,7 +81,7 @@ NOTE: The banner bar in Powerchart and several other reports were updated under 
 **************************************************************************
 Mod Date       Analyst              MCGA    Comment
 --- ---------- -------------------- ------  -------------------------------
-008 2025-04-07 Michael Mayes        PENDING They want an on the fly addition of DX to this.
+008 2025-04-07 Michael Mayes        353473  They want an on the fly addition of DX to this.
 *******************************************************************************************************/
  
 drop program 7_ip_resus_stat_140507:dba go
