@@ -24,6 +24,7 @@ Mod    Date             Analyst                 SOM/MCGA                    Comm
 ---    ----------       --------------------    ------              ------------------------------------------
 N/A    10/28/2022       Jeremy Daniel           N/A                 Initial Release
 001    05/28/2025       Michael Mayes           354184              Adding some DXes
+002    07/01/2025       Michael Mayes           354643              Adding a DX
 
 *************END OF ALL MODCONTROL BLOCKS* *******************************************************************/
 drop program 14_referral_extract_gi_orbita go
@@ -540,11 +541,16 @@ join n
          or n.source_identifier_keycap =   'R94.5'    ; Abnormal results of liver function studies
          or n.source_identifier_keycap =   'Z85.038'  ; Personal history of other malignant neoplasm of large intestine
          or n.source_identifier_keycap =   'R10.10'   ; Upper abdominal pain, unspecified
-         or n.source_identifier_keycap =   'K27.9'    ; Peptic ulcer, site unspecified, unspecified as acute or chronic, without [..]
+         or n.source_identifier_keycap =   'K27.9'    ; Peptic ulcer, site unspecified, unspecified as acute or chronic, without[..]
          or n.source_identifier_keycap =   'Z86.0100' ; Personal history of colon polyps, unspecified
          or n.source_identifier_keycap =   'Z83.719'  ; Family history of colon polyps, unspecified
          or n.source_identifier_keycap =   'R11.10'   ; Vomiting, unspecified
          ;001<-
+         
+         ;002->
+         or n.source_identifier_keycap =   'R19.5'    ; Other fecal abnormalities
+         ;002<-
+         
          )
   and n.active_ind = 1
 order by d1.seq
