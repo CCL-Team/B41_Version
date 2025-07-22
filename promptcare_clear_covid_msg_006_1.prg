@@ -80,6 +80,16 @@ Updates completed:
 
     I'm going to catch that both filled case and do nothing for now.
  */
+;Now moving to a standard mod block
+
+/*****************************************************************************************
+                  MODIFICATION CONTROL LOG
+******************************************************************************************
+Mod Date       Analyst              MCGA   Comment
+--- ---------- -------------------- ------ -----------------------------------------------
+010 2023-01-04 Michael Mayes        353682 Adding a location, and just guessing at a mod number, because we don't ahve them yet
+*************END OF ALL MODCONTROL BLOCKS* ***********************************************/
+
 record temp (
     1 cnt = i4
     1 q [*]
@@ -133,75 +143,78 @@ from ce_event_action ca
     , person p
 
 plan ca where ca.action_prsnl_group_id in (41971939.00  ;Urgent Care Alexandria Clinical
-                        , 41972055.00   ;Urgent Care Wheaton Clinical
-                        , 41971936.00   ;Urgent Care Alexandria Admin
-                        , 41971945.00   ;Urgent Care Belair Clinical
-                        , 41971979.00   ;Urgent Care Capitol Hill Clinical
-                        , 41971982.00   ;Urgent Care Chevy Chase Admin
-                        , 41971988.00   ;Urgent Care Federal Hill Admin
-                        , 41972008.00   ;Urgent Care Gaithersburg Clinical
-                        , 41972049.00   ;Urgent Care Waldorf Clinical
-                        , 41972011.00   ;Urgent Care Hyattsville Admin
-                        , 41971970.00   ;Urgent Care Belcamp Admin
-                        , 41972017.00   ;Urgent Care Perry Hall Admin
-                        , 41972040.00   ;Urgent Care Towson Admin
-                        , 41972043.00   ;Urgent Care Towson Clinical
-                        , 41971930.00   ;Urgent Care Adams Morgan Admin
-                        , 41971973.00   ;Urgent Care Belcamp Clinical
-                        , 41971976.00   ;Urgent Care Capitol Hill Admin
-                        , 41972014.00   ;Urgent Care Hyattsville Clinical
-                        , 41972020.00   ;Urgent Care Perry Hall Clinical
-                        , 41972046.00   ;Urgent Care Waldorf Admin
-                        , 41971933.00   ;Urgent Care Adams Morgan Clinical
-                        , 41971985.00   ;Urgent Care Chevy Chase Clinical
-                        , 41972005.00   ;Urgent Care Gaithersburg Admin
-                        , 41972052.00   ;Urgent Care Wheaton Admin
-                        , 43546567.00   ;Urgent Care Clinical All -> parent pool
-                        , 41971942.00   ;Urgent Care Belair Admin
-                        , 41971991.00   ;Urgent Care Federal Hill Clinical
-                        , 65020311.00   ;Urgent Care Charlotte Hall Clinical
-                        , 65020308.00   ;Urgent Care Charlotte Hall Admin
-                        , 238047623.00  ;Urgent Care La Plata Admin
-                        , 238047624.00  ;Urgent Care Olney Admin
-                        , 238047621.00  ;Urgent Care Gaithersburg Muddy Branch Admin
-                        , 238048704.00  ;Urgent Care Potomac Clinical
-                        , 238048707.00  ;Urgent Care Silver Spring Clinical
-                        , 238176437.00  ;Urgent Care Waldorf Shoppers World Admin
-                        , 238176439.00  ;Urgent Care Waugh Chapel Admin
-                        , 238176440.00  ;Urgent Care Waugh Chapel Clinical
-                        , 238045470.00  ;Urgent Care Arundel Mills Admin
-                        , 238089759.00  ;Urgent Care Towson Hillside Admin
-                        , 255779780.00  ;Urgent Care Referral Navigator
-                        , 238089763.00  ;Urgent Care Towson Hillside Clinical
-                        , 255779782.00  ;Urgent Care E-Visit Referral Navigator
-                        , 238174270.00  ;Urgent Care Catonsville Admin
-                        , 238174272.00  ;Urgent Care Frederick Admin
-                        , 238174275.00  ;Urgent Care Frederick Clinical
-                        , 238089770.00  ;Urgent Care Waldorf Shoppers World Clinical
-                        , 238083317.00  ;Urgent Care Annapolis Admin
-                        , 238083330.00  ;Urgent Care Bethesda Admin
-                        , 238083336.00  ;Urgent Care California Admin
-                        , 238083321.00  ;Urgent Care Annapolis Clinical
-                        , 238083327.00  ;Urgent Care Arundel Mills Clinical
-                        , 238083339.00  ;Urgent Care California Clinical
-                        , 238084307.00  ;Urgent Care Catonsville Clinical
-                        , 238084310.00  ;Urgent Care Columbia Admin
-                        , 238089717.00  ;Urgent Care Olney Clinical
-                        , 238089729.00  ;Urgent Care Pikesville Admin
-                        , 238089732.00  ;Urgent Care Pikesville Clinical
-                        , 238083332.00  ;Urgent Care Bethesda Clinical
-                        , 238084314.00  ;Urgent Care Columbia Clinical
-                        , 238089696.00  ;Urgent Care Gaithersburg Muddy Branch Clinical
-                        , 238089699.00  ;Urgent Care Germantown Admin
-                        , 238089702.00  ;Urgent Care Germantown Clinical
-                        , 238089723.00  ;Urgent Care Pasadena Clinical
-                        , 238089709.00  ;Urgent Care La Plata Clinical
-                        , 238089720.00  ;Urgent Care Pasadena Admin
-                        , 238089735.00  ;Urgent Care Potomac Admin
-                        , 238089739.00  ;Urgent Care Rockville Admin
-                        , 238089742.00  ;Urgent Care Rockville Clinical
-                        , 238089745.00  ;Urgent Care Silver Spring Admin
-                        , 344023518.00  ;Urgent Care Clinical Lab
+                        ,   41972055.00  ;Urgent Care Wheaton Clinical
+                        ,   41971936.00  ;Urgent Care Alexandria Admin
+                        ,   41971945.00  ;Urgent Care Belair Clinical
+                        ,   41971979.00  ;Urgent Care Capitol Hill Clinical
+                        ,   41971982.00  ;Urgent Care Chevy Chase Admin
+                        ,   41971988.00  ;Urgent Care Federal Hill Admin
+                        ,   41972008.00  ;Urgent Care Gaithersburg Clinical
+                        ,   41972049.00  ;Urgent Care Waldorf Clinical
+                        ,   41972011.00  ;Urgent Care Hyattsville Admin
+                        ,   41971970.00  ;Urgent Care Belcamp Admin
+                        ,   41972017.00  ;Urgent Care Perry Hall Admin
+                        ,   41972040.00  ;Urgent Care Towson Admin
+                        ,   41972043.00  ;Urgent Care Towson Clinical
+                        ,   41971930.00  ;Urgent Care Adams Morgan Admin
+                        ,   41971973.00  ;Urgent Care Belcamp Clinical
+                        ,   41971976.00  ;Urgent Care Capitol Hill Admin
+                        ,   41972014.00  ;Urgent Care Hyattsville Clinical
+                        ,   41972020.00  ;Urgent Care Perry Hall Clinical
+                        ,   41972046.00  ;Urgent Care Waldorf Admin
+                        ,   41971933.00  ;Urgent Care Adams Morgan Clinical
+                        ,   41971985.00  ;Urgent Care Chevy Chase Clinical
+                        ,   41972005.00  ;Urgent Care Gaithersburg Admin
+                        ,   41972052.00  ;Urgent Care Wheaton Admin
+                        ,   41971942.00  ;Urgent Care Belair Admin
+                        ,   41971991.00  ;Urgent Care Federal Hill Clinical
+                        ,   65020311.00  ;Urgent Care Charlotte Hall Clinical
+                        ,   65020308.00  ;Urgent Care Charlotte Hall Admin
+                        ,  238047623.00  ;Urgent Care La Plata Admin
+                        ,  238047624.00  ;Urgent Care Olney Admin
+                        ,  238047621.00  ;Urgent Care Gaithersburg Muddy Branch Admin
+                        ,  238048704.00  ;Urgent Care Potomac Clinical
+                        ,  238048707.00  ;Urgent Care Silver Spring Clinical
+                        ,  238176437.00  ;Urgent Care Waldorf Shoppers World Admin
+                        ,  238176439.00  ;Urgent Care Waugh Chapel Admin
+                        ,  238176440.00  ;Urgent Care Waugh Chapel Clinical
+                        ,  238045470.00  ;Urgent Care Arundel Mills Admin
+                        ,  238089759.00  ;Urgent Care Towson Hillside Admin
+                        ,  255779780.00  ;Urgent Care Referral Navigator
+                        ,  238089763.00  ;Urgent Care Towson Hillside Clinical
+                        ,  255779782.00  ;Urgent Care E-Visit Referral Navigator
+                        ,  238174270.00  ;Urgent Care Catonsville Admin
+                        ,  238174272.00  ;Urgent Care Frederick Admin
+                        ,  238174275.00  ;Urgent Care Frederick Clinical
+                        ,  238089770.00  ;Urgent Care Waldorf Shoppers World Clinical
+                        ,  238083317.00  ;Urgent Care Annapolis Admin
+                        ,  238083330.00  ;Urgent Care Bethesda Admin
+                        ,  238083336.00  ;Urgent Care California Admin
+                        ,  238083321.00  ;Urgent Care Annapolis Clinical
+                        ,  238083327.00  ;Urgent Care Arundel Mills Clinical
+                        ,  238083339.00  ;Urgent Care California Clinical
+                        ,  238084307.00  ;Urgent Care Catonsville Clinical
+                        ,  238084310.00  ;Urgent Care Columbia Admin
+                        ,  238089717.00  ;Urgent Care Olney Clinical
+                        ,  238089729.00  ;Urgent Care Pikesville Admin
+                        ,  238089732.00  ;Urgent Care Pikesville Clinical
+                        ,  238083332.00  ;Urgent Care Bethesda Clinical
+                        ,  238084314.00  ;Urgent Care Columbia Clinical
+                        ,  238089696.00  ;Urgent Care Gaithersburg Muddy Branch Clinical
+                        ,  238089699.00  ;Urgent Care Germantown Admin
+                        ,  238089702.00  ;Urgent Care Germantown Clinical
+                        ,  238089723.00  ;Urgent Care Pasadena Clinical
+                        ,  238089709.00  ;Urgent Care La Plata Clinical
+                        ,  238089720.00  ;Urgent Care Pasadena Admin
+                        ,  238089735.00  ;Urgent Care Potomac Admin
+                        ,  238089739.00  ;Urgent Care Rockville Admin
+                        ,  238089742.00  ;Urgent Care Rockville Clinical
+                        ,  238089745.00  ;Urgent Care Silver Spring Admin
+                        , 6191902971.00  ;Urgent Care at Great Mills               ;010 Adding
+                        
+                        ,  344023518.00  ;Urgent Care Clinical Lab                 ;010 Moving... just because they are special
+                        ,   43546567.00  ;Urgent Care Clinical All -> parent pool  ;010 Moving... just because they are special
+                        
                     )
 join cp where ca.ce_event_action_id = cp.ce_event_action_id
             and cp.queue_type_cd = 4146570.00 ;endorse
@@ -313,7 +326,7 @@ for ( x = 1 to temp->cnt)
             ;Mayes Dec 06, adding this to catch my case.
             elseif(temp->q[x].error_chk > 3)
                 ;But we don't want to do the commit... or the action... so... just debug echoing for now.
-                
+
                 call echo(notrim(build2('Preventing constraint violation on ', temp->q[x].ce_event_action_id)))
             endif
 
