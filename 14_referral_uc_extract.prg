@@ -18,6 +18,8 @@ N/A 06/03/2024 Simeon Akinsulie     346022 Initial Release
 001 09/18/2024 Michael Mayes        349910 Adding locations and fields
 002 10/14/2024 Michael Mayes        350390 Removing some modalities from new locations
 003 10/24/2024 Michael Mayes        350390 Removing some modalities from new locations... again.
+004 08/04/2025 Michael Mayes        354281 There is a new extract for Cardio, and it will send some data their way.
+                                           They don't want that data to come from this script too, so now we have to filter some.
 *************END OF ALL MODCONTROL BLOCKS* **************************************************************************************/
   drop program 14_referral_uc_extract go
 create program 14_referral_uc_extract
@@ -85,51 +87,53 @@ call echo($start_dt    )
 ;---------------------------------------------------------------------------------------------------------------------------------
 free record rs
 record rs
-(   1 printcnt                   = i4
+(   1 printcnt                         = i4
     1 qual[*]
-        2 headercol              = vc
-        2 personid               = f8
-        2 firstname              = vc
-        2 lastname               = vc
-        2 mrn                    = vc
-    2 dob                        = vc
-    2 cmrn                       = vc
-        2 phone                  = vc
-        2 email                  = vc
-        2 multiple_orders        = vc
-        2 zip                    = vc
-        2 order_cnt_tot          = i4
+        2 headercol                    = vc
+        2 personid                     = f8
+        2 firstname                    = vc
+        2 lastname                     = vc
+        2 mrn                          = vc
+        2 dob                          = vc
+        2 cmrn                         = vc
+        2 phone                        = vc
+        2 email                        = vc
+        2 multiple_orders              = vc
+        2 zip                          = vc
+        2 order_cnt_tot                = i4
         2 orders[*]
-          3 encntrid             = f8
-          3 orderid              = f8
-          3 encntr_type          = vc
-          3 e_location           = vc
-          3 clinic_name          = vc
-      3 clinic_name              = vc
-      3 fin                      = vc
-      3 encntr_cd                = vc
-      3 reg_dt                   = dq8
-      3 visit_reason             = vc
-      3 admit_from               = vc
-      3 location                 = vc
-      3 order_name               = vc
-      3 rec_count                = vc
-        3 target_provider        = vc
-        3 target_specialty       = vc
-        3 target_phone           = vc
-        3 target_address         = vc
-        3 target_service         = vc
-        3 oe_value               = vc
-        3 addr_prov_flag         = vc
-        3 order_cnt              = i4
-        3 order_cnt_tot          = i4
-        3 dx_code                = vc
-        3 dx_display             = vc
-        3 source_string          = vc
-        3 performing_location    = vc
-        3 performing_location_cd = f8
-        3 modality               = vc
-        3 referral_type          = vc
+            3 encntrid                 = f8
+            3 orderid                  = f8
+            3 dx_exclude_ind           = i4  ;004  
+            3 dx                       = vc  ;004
+            3 encntr_type              = vc
+            3 e_location               = vc
+            3 clinic_name              = vc
+            3 clinic_name              = vc
+            3 fin                      = vc
+            3 encntr_cd                = vc
+            3 reg_dt                   = dq8
+            3 visit_reason             = vc
+            3 admit_from               = vc
+            3 location                 = vc
+            3 order_name               = vc
+            3 rec_count                = vc
+            3 target_provider          = vc
+            3 target_specialty         = vc
+            3 target_phone             = vc
+            3 target_address           = vc
+            3 target_service           = vc
+            3 oe_value                 = vc
+            3 addr_prov_flag           = vc
+            3 order_cnt                = i4
+            3 order_cnt_tot            = i4
+            3 dx_code                  = vc
+            3 dx_display               = vc
+            3 source_string            = vc
+            3 performing_location      = vc
+            3 performing_location_cd   = f8
+            3 modality                 = vc
+            3 referral_type            = vc
 )
 
 
@@ -479,6 +483,49 @@ detail
     rs->qual[d1.seq].orders[d2.seq].source_string = n.source_string
 WITH nocounter, time = 400
 
+;004->
+;---------------------------------------------------------------------------------------------------------------------------------
+;                   Exclusion DXes...
+;                   We have to hide what we pull in the new cardio extract.
+;---------------------------------------------------------------------------------------------------------------------------------
+select into 'nl:'
+  
+  from diagnosis          dx
+     , nomenclature       n
+     , (dummyt d1 with seq = size(rs->qual,5))
+     , (dummyt d2 with seq = 1)
+  
+  plan d1
+   where maxrec(d2, size(rs->qual[d1.seq].orders, 5))
+
+  join d2
+  
+  join dx
+   where dx.encntr_id           =  rs->qual[d1.seq].orders[d2.seq].encntrid
+     and dx.end_effective_dt_tm >= cnvtdatetime(curdate,curtime3)
+  
+  join n
+   where n.nomenclature_id       =  dx.nomenclature_id
+     and (   n.source_identifier_keycap = 'R07.9'
+          or n.source_identifier_keycap = 'R07.89'
+          or n.source_identifier_keycap = 'R00.0'
+          or n.source_identifier_keycap = 'R55'
+          or n.source_identifier_keycap = 'R06.02'
+         )
+
+order by dx.encntr_id, dx.diag_priority
+
+head dx.encntr_id
+    
+    rs->qual[d1.seq].orders[d2.seq].dx_exclude_ind = 1
+    rs->qual[d1.seq].orders[d2.seq].dx             = n.source_identifier_keycap
+
+with nocounter 
+
+
+;004<-
+
+
 ;---------------------------------------------------------------------------------------------------------------------------------
 ;GETTING ORDER DETAIL INFO
 ;---------------------------------------------------------------------------------------------------------------------------------
@@ -597,6 +644,7 @@ call echorecord(rs)
         , referral_type                 = trim(substring(1, 10,rs->qual[d1.seq].orders[d2.seq].referral_type))
         , modality                      = trim(substring(1, 50,rs->qual[d1.seq].orders[d2.seq].modality))
         , ref_to_location               = trim(substring(1, 50,rs->qual[d1.seq].orders[d2.seq].performing_location))  ;001
+        ;, dx                            = trim(substring(1, 50,rs->qual[d1.seq].orders[d2.seq].dx))  ;004
         ;001- That last one is not filled out... actually I think there are several like that.  Mainly to keep in line with the
         ;     MRN extract we do too... which appends to this.
 
@@ -649,6 +697,7 @@ call echorecord(rs)
                                               , "Katherine Day, MD"
                                               , "Faith Esterson, MD" )
         and rs->qual[d1.seq].orders[d2.seq].order_name != "Referral to MedStar Emergency Room*"
+        and rs->qual[d1.seq].orders[d2.seq].dx_exclude_ind = 0  ;004
 
     order by lastname,firstname
     with nocounter, time = 1500, format, separator = " "
